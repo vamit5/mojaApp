@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { Icon } from "@mojapp/ui";
 import { Link } from "../router";
 import { supabase } from "../lib/supabase";
+import { startCheckout } from "../lib/payments";
 import "./share.css";
 import "./offer.css";
 
@@ -11,6 +12,7 @@ interface OfferData {
   number: string; status: string; plan_key: string | null; items: OfferItem[]; phases: OfferPhase[];
   total: number; monthly: number | null; currency: string; deposit_pct: number; valid_until: string | null; created_at: string;
   client_name: string | null; business_name: string | null; industry: string | null; demo_slug: string | null;
+  deposit_paid: boolean; project_token: string | null;
 }
 
 export const money = (n: number, cur = "EUR") => `${new Intl.NumberFormat("sr-Latn-RS", { minimumFractionDigits: 0, maximumFractionDigits: 2 }).format(n)} ${cur === "EUR" ? "€" : cur}`;
@@ -40,13 +42,20 @@ export function Offer({ token }: { token: string }) {
   const expired = offer.valid_until ? new Date(offer.valid_until + "T23:59:59") < new Date() : false;
   const accepted = offer.status === "prihvacena";
 
-  const accept = async () => {
+  const fullPay = offer.deposit_pct >= 100;
+  const payLabel = fullPay ? `Plati ${money(offer.total, offer.currency)}` : `Plati depozit ${money(deposit, offer.currency)}`;
+
+  const accept = async (thenPay: boolean) => {
     if (!supabase) return;
     setAccepting(true); setError("");
-    const { data, error } = await supabase.rpc("accept_offer", { p_token: token });
-    setAccepting(false);
-    if (error || !data) { setError("Prihvatanje nije uspelo. Ponuda je možda istekla. Javite nam se i poslaćemo novu."); return; }
-    setOffer({ ...offer, status: "prihvacena" });
+    if (!accepted) {
+      const { data, error } = await supabase.rpc("accept_offer", { p_token: token });
+      if (error || !data) { setAccepting(false); setError("Prihvatanje nije uspelo. Ponuda je možda istekla. Javite nam se i poslaćemo novu."); return; }
+      setOffer({ ...offer, status: "prihvacena" });
+    }
+    if (!thenPay) { setAccepting(false); return; }
+    const err = await startCheckout({ offer_token: token });
+    if (err) { setAccepting(false); setError(err); }
   };
 
   return (
@@ -108,14 +117,24 @@ export function Offer({ token }: { token: string }) {
         </section>
 
         <footer className="o-actions">
-          {accepted ? (
-            <div className="o-accepted"><Icon name="check" size={20} /> Ponuda je prihvaćena. Javljamo vam se sa linkom za uplatu depozita.</div>
+          {offer.deposit_paid ? (
+            <>
+              <div className="o-accepted"><Icon name="check" size={20} /> {fullPay ? "Uplata je primljena." : "Depozit je uplaćen."} Izrada je u toku.</div>
+              {offer.project_token && <Link to={`/projekat/${offer.project_token}`} className="b-btn is-big">Pratite izradu</Link>}
+            </>
+          ) : accepted ? (
+            <>
+              <div className="o-accepted"><Icon name="check" size={20} /> Ponuda je prihvaćena.</div>
+              <button type="button" className="b-btn is-big" onClick={() => accept(true)} disabled={accepting}><Icon name="card" size={18} />{accepting ? "Otvaramo plaćanje…" : payLabel}</button>
+              <span className="o-muted">Kartica, Apple Pay ili Google Pay, preko Stripe-a.</span>
+            </>
           ) : expired ? (
             <div className="o-expired">Ponuda je istekla. Javite nam se i poslaćemo novu.</div>
           ) : (
             <>
-              <button type="button" className="b-btn is-big" onClick={accept} disabled={accepting}>{accepting ? "Šaljemo…" : "Prihvatam ponudu"}</button>
-              <span className="o-muted">Prihvatanjem ponude ne vrši se plaćanje. Link za uplatu depozita stiže posle potvrde.</span>
+              <button type="button" className="b-btn is-big" onClick={() => accept(true)} disabled={accepting}><Icon name="card" size={18} />{accepting ? "Otvaramo plaćanje…" : `Prihvatam i plaćam ${fullPay ? "" : "depozit "}${money(fullPay ? offer.total : deposit, offer.currency)}`}</button>
+              <button type="button" className="b-link" onClick={() => accept(false)} disabled={accepting}>Prihvati sada, platiću kasnije</button>
+              <span className="o-muted">Plaćanje karticom, Apple Pay ili Google Pay, preko Stripe-a. Izrada počinje posle uplate.</span>
             </>
           )}
           {error && <p className="b-error" role="alert">{error}</p>}

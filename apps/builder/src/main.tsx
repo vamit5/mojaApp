@@ -8,6 +8,8 @@ const Home = lazy(() => import("./pages/Home").then((m) => ({ default: m.Home })
 const Builder = lazy(() => import("./Builder").then((m) => ({ default: m.Builder })));
 const DemoView = lazy(() => import("./pages/DemoView").then((m) => ({ default: m.DemoView })));
 const Offer = lazy(() => import("./pages/Offer").then((m) => ({ default: m.Offer })));
+const Payment = lazy(() => import("./pages/Payment").then((m) => ({ default: m.Payment })));
+const Project = lazy(() => import("./pages/Project").then((m) => ({ default: m.Project })));
 const Admin = lazy(() => import("./admin/Admin").then((m) => ({ default: m.Admin })));
 
 function App() {
@@ -19,6 +21,8 @@ function App() {
   else if (path.startsWith("/demo")) page = <Builder />;
   else if (path.startsWith("/d/")) page = <DemoView slug={decodeURIComponent(path.slice(3))} />;
   else if (path.startsWith("/ponuda/")) page = <Offer token={decodeURIComponent(path.slice(8))} />;
+  else if (path.startsWith("/placanje")) page = <Payment />;
+  else if (path.startsWith("/projekat/")) page = <Project token={decodeURIComponent(path.slice(10))} />;
   else if (path.startsWith("/admin")) page = <Admin />;
   else page = <Home />;
 

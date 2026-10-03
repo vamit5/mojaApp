@@ -51,11 +51,21 @@ Admin nalog: posle prve prijave u bazi postaviti `update profiles set role = 'ad
 | `/demo` (`?industry=salon`) | Demo builder |
 | `/d/{slug}` | Deljivi demo klijenta |
 | `/ponuda/{token}` | Javna ponuda: pregled, PDF (štampa), prihvatanje |
-| `/admin` | CRM: leadovi, statusi, beleške, demo, procena, Generate offer |
+| `/placanje` | Povratak sa Stripe-a, potvrda uplate |
+| `/projekat/{token}` | Klijentski portal: faza, aplikacija, uplate, poruke, plaćanje ostatka |
+| `/admin` | CRM: leadovi, ponude, projekti (faze, linkovi za prodavnice, poruke) |
 
 ## Sledeće
 
-1. Email obaveštenja (Resend): klijentu link demoa i ponude, vlasniku novi lead.
-2. Stripe: link za uplatu depozita iz prihvaćene ponude.
-3. Client portal sa fazama projekta.
-4. CMS za tekstove sajta i Instagram content sistem.
+1. Domen + Resend domen: emailovi klijentima (link demoa, ponuda, promena faze).
+2. Mesečna pretplata (Stripe Subscriptions) od objave aplikacije.
+3. CMS za tekstove sajta, portfolio sa DEMO oznakom.
+4. Instagram content sistem i Generate Reel.
+
+## Edge funkcije i secrets
+
+| Funkcija | Secrets |
+| --- | --- |
+| `lead-submit` | `RESEND_API_KEY` (opciono), `OWNER_EMAIL` (opciono) |
+| `offer-checkout` | `STRIPE_SECRET_KEY` |
+| `payment-verify` | `STRIPE_SECRET_KEY`, `RESEND_API_KEY` (opciono) |

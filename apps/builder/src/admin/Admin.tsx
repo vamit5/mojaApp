@@ -7,6 +7,7 @@ import { supabase } from "../lib/supabase";
 import { Phone } from "../components/Phone";
 import { Link } from "../router";
 import { money, type OfferItem, type OfferPhase } from "../pages/Offer";
+import { STAGES } from "../pages/Project";
 import "../pages/share.css";
 import "./admin.css";
 
@@ -28,6 +29,16 @@ interface Lead {
 }
 interface Activity { id: string; type: string; body: string | null; created_at: string }
 interface OfferRow { id: string; number: string; status: string; total: number; monthly: number | null; public_token: string; created_at: string; lead_id: string; leads?: { business_name: string | null } | null }
+
+interface ProjectRow {
+  id: string; name: string; stage: string; stage_note: string | null; store_links: { appstore?: string; play?: string } | null;
+  agreed_price: number | null; monthly_price: number | null; maintenance: string; public_token: string; lead_id: string | null; offer_id: string | null;
+  created_at: string; updated_at: string; config: unknown;
+  leads: { name: string | null; email: string | null; phone: string | null } | null;
+  payments: { kind: string; amount: number; status: string }[];
+}
+interface CommentRow { id: string; body: string; internal: boolean; author_id: string | null; created_at: string }
+const stageLabel = (s: string) => STAGES.find(([k]) => k === s)?.[1] ?? s;
 
 const when = (d: string) => new Date(d).toLocaleString("sr-Latn-RS", { day: "numeric", month: "short", hour: "2-digit", minute: "2-digit" });
 const db = supabase!;
@@ -95,7 +106,9 @@ function Login() {
 /* ───────────────────────── glavni ekran ───────────────────────── */
 
 function Dashboard({ email }: { email: string }) {
-  const [view, setView] = useState<"leads" | "offers">("leads");
+  const [view, setView] = useState<"leads" | "offers" | "projects">("leads");
+  const [projects, setProjects] = useState<ProjectRow[]>([]);
+  const [openProject, setOpenProject] = useState<ProjectRow | null>(null);
   const [leads, setLeads] = useState<Lead[]>([]);
   const [offers, setOffers] = useState<OfferRow[]>([]);
   const [filter, setFilter] = useState<Status | "sve" | "aktivni">("aktivni");
@@ -103,10 +116,14 @@ function Dashboard({ email }: { email: string }) {
   const [loading, setLoading] = useState(true);
 
   const load = useCallback(async () => {
-    const [l, o] = await Promise.all([
+    // proveri uplate na čekanju kod Stripe-a (ako je klijent zatvorio stranicu posle plaćanja)
+    await db.functions.invoke("payment-verify", { body: { sweep: true } }).catch(() => null);
+    const [l, o, p] = await Promise.all([
       db.from("leads").select("*").order("created_at", { ascending: false }).limit(500),
       db.from("offers").select("id,number,status,total,monthly,public_token,created_at,lead_id,leads(business_name)").order("created_at", { ascending: false }).limit(200),
+      db.from("projects").select("id,name,stage,stage_note,store_links,agreed_price,monthly_price,maintenance,public_token,lead_id,offer_id,created_at,updated_at,config,leads(name,email,phone),payments(kind,amount,status)").order("created_at", { ascending: false }).limit(200),
     ]);
+    setProjects((p.data ?? []) as unknown as ProjectRow[]);
     setLeads((l.data ?? []) as Lead[]);
     setOffers(((o.data ?? []) as unknown as OfferRow[]).map((r) => ({ ...r, total: Number(r.total) })));
     setLoading(false);
@@ -120,7 +137,8 @@ function Dashboard({ email }: { email: string }) {
     want: leads.filter((l) => l.priority && ["nov", "kontaktiran", "poziv_zakazan"].includes(l.status)).length,
     offers: offers.filter((o) => ["poslata", "vidjena"].includes(o.status)).length,
     accepted: offers.filter((o) => o.status === "prihvacena").length,
-  }), [leads, offers, today]);
+    active: projects.filter((x) => x.stage !== "objavljeno").length,
+  }), [leads, offers, projects, today]);
 
   const counts = useMemo(() => Object.fromEntries(STATUSES.map(([k]) => [k, leads.filter((l) => l.status === k).length])), [leads]);
   const shown = leads.filter((l) => filter === "sve" ? true : filter === "aktivni" ? !["zavrseno", "odbijeno"].includes(l.status) : l.status === filter);
@@ -134,6 +152,7 @@ function Dashboard({ email }: { email: string }) {
         <nav>
           <button type="button" className={view === "leads" ? "is-active" : ""} onClick={() => setView("leads")}><Icon name="users" size={18} /> Leadovi <span>{counts.nov || ""}</span></button>
           <button type="button" className={view === "offers" ? "is-active" : ""} onClick={() => setView("offers")}><Icon name="tag" size={18} /> Ponude <span>{stats.accepted || ""}</span></button>
+          <button type="button" className={view === "projects" ? "is-active" : ""} onClick={() => setView("projects")}><Icon name="phone" size={18} /> Projekti <span>{stats.active || ""}</span></button>
         </nav>
         <div className="a-side-foot">
           <span>{email}</span>
@@ -147,7 +166,7 @@ function Dashboard({ email }: { email: string }) {
           <Stat label="Čekaju kontakt" value={stats.open} />
           <Stat label="Žele aplikaciju" value={stats.want} hot={stats.want > 0} />
           <Stat label="Ponude na čekanju" value={stats.offers} />
-          <Stat label="Prihvaćene ponude" value={stats.accepted} />
+          <Stat label="Aktivni projekti" value={stats.active} />
         </div>
 
         {view === "leads" ? (
@@ -182,13 +201,18 @@ function Dashboard({ email }: { email: string }) {
               </div>
             )}
           </>
-        ) : (
+        ) : view === "offers" ? (
           <OffersList offers={offers} onOpenLead={(id) => { const l = leads.find((x) => x.id === id); if (l) { setView("leads"); setOpen(l); } }} />
+        ) : (
+          <ProjectsList projects={projects} onOpen={setOpenProject} onRefresh={load} />
         )}
       </main>
 
       <AnimatePresence>
         {open && <LeadDrawer key={open.id} lead={open} onClose={() => setOpen(null)} onChange={updateLead} onOffer={load} />}
+      </AnimatePresence>
+      <AnimatePresence>
+        {openProject && <ProjectDrawer key={openProject.id} project={openProject} onClose={() => setOpenProject(null)} onChange={(u) => { setProjects((ps) => ps.map((x) => (x.id === u.id ? u : x))); setOpenProject(u); }} />}
       </AnimatePresence>
     </div>
   );
@@ -454,5 +478,160 @@ function OfferEditor({ lead, modules, onClose, onSaved }: { lead: Lead; modules:
         )}
       </motion.div>
     </motion.div>
+  );
+}
+
+/* ───────────────────────── projekti ───────────────────────── */
+
+function ProjectsList({ projects, onOpen, onRefresh }: { projects: ProjectRow[]; onOpen: (p: ProjectRow) => void; onRefresh: () => void }) {
+  return (
+    <>
+      <div className="a-head"><h1>Projekti</h1><button type="button" className="b-btn is-ghost" onClick={onRefresh}>Osveži</button></div>
+      {projects.length === 0 ? <div className="a-empty">Projekat se pravi automatski kada klijent plati depozit.</div> : (
+        <div className="a-table-wrap">
+          <table className="a-table">
+            <thead><tr><th>Aplikacija</th><th>Klijent</th><th>Faza</th><th>Plaćeno</th><th>Cena</th><th>Ažurirano</th></tr></thead>
+            <tbody>
+              {projects.map((p) => {
+                const paid = p.payments.filter((x) => x.status === "paid").reduce((s, x) => s + Number(x.amount), 0);
+                return (
+                  <tr key={p.id} onClick={() => onOpen(p)} tabIndex={0} onKeyDown={(e) => e.key === "Enter" && onOpen(p)}>
+                    <td><strong>{p.name}</strong></td>
+                    <td>{p.leads?.name ?? "—"}<span className="a-sub">{p.leads?.email}</span></td>
+                    <td><span className={`a-pill is-stage-${p.stage}`}>{stageLabel(p.stage)}</span></td>
+                    <td className="a-num">{money(paid)}</td>
+                    <td className="a-num">{p.agreed_price ? money(Number(p.agreed_price)) : "—"}</td>
+                    <td className="a-num">{when(p.updated_at)}</td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
+      )}
+    </>
+  );
+}
+
+function ProjectDrawer({ project, onClose, onChange }: { project: ProjectRow; onClose: () => void; onChange: (p: ProjectRow) => void }) {
+  const [stage, setStage] = useState(project.stage);
+  const [note, setNote] = useState("");
+  const [links, setLinks] = useState({ appstore: project.store_links?.appstore ?? "", play: project.store_links?.play ?? "" });
+  const [comments, setComments] = useState<CommentRow[]>([]);
+  const [msg, setMsg] = useState("");
+  const [internal, setInternal] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [saved, setSaved] = useState("");
+  const [copied, setCopied] = useState(false);
+  const portal = `${location.origin}/projekat/${project.public_token}`;
+  const paid = project.payments.filter((x) => x.status === "paid");
+  const paidSum = paid.reduce((s, x) => s + Number(x.amount), 0);
+
+  const config = useMemo(() => {
+    const clean = JSON.parse(JSON.stringify(project.config ?? {}), (_k, v) => (v === null ? undefined : v));
+    if (clean?.content?.photos) clean.content.photos = clean.content.photos.filter(Boolean);
+    const r = AppConfigSchema.safeParse(clean);
+    return r.success ? r.data : null;
+  }, [project.config]);
+
+  const loadComments = useCallback(() => {
+    db.from("project_comments").select("id,body,internal,author_id,created_at").eq("project_id", project.id).order("created_at")
+      .then(({ data }) => setComments((data ?? []) as CommentRow[]));
+  }, [project.id]);
+  useEffect(() => { loadComments(); }, [loadComments]);
+
+  const saveStage = async () => {
+    setSaving(true); setSaved("");
+    const def = STAGES.find(([k]) => k === stage)?.[2] ?? null;
+    const stage_note = note.trim() || def;
+    const store_links = { ...(links.appstore.trim() ? { appstore: links.appstore.trim() } : {}), ...(links.play.trim() ? { play: links.play.trim() } : {}) };
+    const { error } = await db.from("projects").update({ stage, stage_note, store_links }).eq("id", project.id);
+    setSaving(false);
+    if (error) { setSaved("Čuvanje nije uspelo."); return; }
+    if (project.lead_id) {
+      const leadStatus = stage === "objavljeno" ? "zavrseno" : ["izrada", "testiranje", "spremno", "prodavnice"].includes(stage) ? "projekat_u_izradi" : null;
+      if (leadStatus) await db.from("leads").update({ status: leadStatus }).eq("id", project.lead_id);
+    }
+    setNote(""); setSaved("Sačuvano. Klijent vidi novu fazu u portalu.");
+    onChange({ ...project, stage, stage_note, store_links, updated_at: new Date().toISOString() });
+  };
+
+  const send = async () => {
+    if (!msg.trim()) return;
+    const { data: u } = await db.auth.getUser();
+    await db.from("project_comments").insert({ project_id: project.id, author_id: u.user?.id, body: msg.trim(), internal });
+    setMsg(""); loadComments();
+  };
+
+  return (
+    <>
+      <motion.div className="a-scrim" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} onClick={onClose} />
+      <motion.aside className="a-drawer" initial={{ x: "100%" }} animate={{ x: 0 }} exit={{ x: "100%" }} transition={{ type: "spring", stiffness: 380, damping: 40 }} aria-label="Projekat">
+        <div className="a-drawer-head">
+          <div><h2>{project.name}</h2><span className="a-sub">{project.leads?.name} · {project.leads?.email}{project.leads?.phone ? ` · ${project.leads.phone}` : ""}</span></div>
+          <button type="button" className="a-close" onClick={onClose} aria-label="Zatvori"><Icon name="x" /></button>
+        </div>
+        <div className="a-drawer-body">
+          <div className="a-col">
+            <section className="a-box">
+              <h3>Portal klijenta</h3>
+              <div className="a-link-row">
+                <input id="portal-link" readOnly value={portal} onFocus={(e) => e.target.select()} />
+                <button type="button" className="b-btn" onClick={async () => { try { await navigator.clipboard.writeText(portal); setCopied(true); } catch { /* ručno */ } }}>{copied ? "Kopirano" : "Kopiraj"}</button>
+              </div>
+              <p className="a-sub">Pošaljite ovaj link klijentu. Preko njega prati fazu, plaća ostatak i piše vam poruke.</p>
+            </section>
+
+            <section className="a-box">
+              <h3>Faza</h3>
+              <select className="a-select" id="project-stage" value={stage} onChange={(e) => setStage(e.target.value)}>
+                {STAGES.map(([k, l]) => <option key={k} value={k}>{l}</option>)}
+              </select>
+              <label className="b-field a-mt"><span>Poruka klijentu uz fazu (nije obavezno)</span>
+                <input id="stage-note" value={note} onChange={(e) => setNote(e.target.value)} placeholder={STAGES.find(([k]) => k === stage)?.[2]} /></label>
+              {(stage === "prodavnice" || stage === "objavljeno") && (
+                <div className="a-offer-grid a-two">
+                  <label className="b-field"><span>App Store link</span><input id="link-appstore" value={links.appstore} onChange={(e) => setLinks({ ...links, appstore: e.target.value })} placeholder="https://apps.apple.com/…" /></label>
+                  <label className="b-field"><span>Google Play link</span><input id="link-play" value={links.play} onChange={(e) => setLinks({ ...links, play: e.target.value })} placeholder="https://play.google.com/…" /></label>
+                </div>
+              )}
+              <div className="a-row"><button type="button" className="b-btn" onClick={saveStage} disabled={saving}>{saving ? "Čuvamo…" : "Sačuvaj fazu"}</button>{saved && <span className="a-sub">{saved}</span>}</div>
+            </section>
+
+            <section className="a-box">
+              <h3>Uplate</h3>
+              <dl className="a-dl">
+                <div><dt>Cena</dt><dd>{project.agreed_price ? money(Number(project.agreed_price)) : "—"}</dd></div>
+                <div><dt>Plaćeno</dt><dd>{money(paidSum)}</dd></div>
+                <div><dt>Mesečno</dt><dd>{project.monthly_price ? money(Number(project.monthly_price)) : "—"}</dd></div>
+              </dl>
+              {paid.map((x, i) => <div key={i} className="a-offer-row"><span>{x.kind === "deposit" ? "Depozit" : x.kind === "balance" ? "Ostatak" : "Ceo iznos"}</span><span className="a-num">{money(Number(x.amount))}</span></div>)}
+            </section>
+
+            <section className="a-box">
+              <h3>Poruke</h3>
+              <ul className="a-thread">
+                {comments.length === 0 && <li className="a-sub">Još nema poruka.</li>}
+                {comments.map((c) => (
+                  <li key={c.id} className={c.internal ? "is-internal" : c.author_id ? "is-team" : "is-client"}>
+                    <span className="a-sub">{c.internal ? "Interno" : c.author_id ? "Vi" : "Klijent"} · {when(c.created_at)}</span>
+                    <p>{c.body}</p>
+                  </li>
+                ))}
+              </ul>
+              <div className="a-note-form">
+                <textarea id="project-reply" rows={2} value={msg} onChange={(e) => setMsg(e.target.value)} placeholder={internal ? "Interna beleška, klijent je ne vidi" : "Odgovor klijentu"} />
+                <button type="button" className="b-btn" onClick={send} disabled={!msg.trim()}>Pošalji</button>
+              </div>
+              <label className="b-consent"><input type="checkbox" checked={internal} onChange={(e) => setInternal(e.target.checked)} /><span>Interna beleška (klijent je ne vidi)</span></label>
+            </section>
+          </div>
+          <div className="a-demo">
+            {config ? <div className="a-demo-phone"><Phone config={config} /></div> : <div className="a-empty">Nema sačuvanog demoa.</div>}
+            <a className="b-link" href={portal} target="_blank" rel="noreferrer">Otvori portal kao klijent</a>
+          </div>
+        </div>
+      </motion.aside>
+    </>
   );
 }

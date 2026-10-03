@@ -104,6 +104,25 @@ Deno.serve(async (req) => {
   await db.from("demos").update({ lead_id: row.id }).eq("id", demo.id);
   await db.from("events").insert({ name: "lead_created", demo_id: demo.id, lead_id: row.id, utm: utm ?? {}, props: { intent: lead.intent } });
 
-  // TODO: Resend — email klijentu sa linkom /d/{slug} i obaveštenje vlasniku.
+  // Obaveštenje vlasniku (Resend). Klijentu se link prikazuje odmah na sajtu; email klijentima kreće kad se poveže domen.
+  const key = Deno.env.get("RESEND_API_KEY");
+  if (key) {
+    const site = Deno.env.get("SITE_URL") ?? "https://moj-app.netlify.app";
+    const esc = (s: string) => s.replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" }[c]!));
+    const hot = lead.intent === "want_app";
+    await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${key}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        from: Deno.env.get("MAIL_FROM") ?? "MojApp <onboarding@resend.dev>",
+        to: [Deno.env.get("OWNER_EMAIL") ?? "vamit5.team@gmail.com"],
+        subject: `${hot ? "Želi aplikaciju" : "Novi demo"}: ${config.brand.name}`,
+        html: `<p><strong>${esc(config.brand.name)}</strong> (${esc(config.industry)})${hot ? " želi aplikaciju." : " je sačuvao demo."}</p>
+               <p>${esc(lead.name)} · ${esc(lead.email)}${lead.phone ? ` · ${esc(lead.phone)}` : ""}</p>
+               <p><a href="${site}/d/${demo.slug}">Otvori demo</a> · <a href="${site}/admin">Admin</a></p>`,
+      }),
+    }).catch(() => {});
+  }
+
   return json(200, { ok: true, slug: demo.slug });
 });

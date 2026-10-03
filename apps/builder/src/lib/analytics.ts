@@ -1,11 +1,11 @@
 /** Funnel događaji (sekcija I plana). GA4 i Meta Pixel se pozivaju samo ako su učitani posle saglasnosti. */
-type EventName = "page_view" | "cta_click" | "demo_started" | "demo_step" | "demo_completed" | "lead_created" | "want_app_click";
+type EventName = "page_view" | "cta_click" | "demo_started" | "demo_step" | "demo_completed" | "lead_created" | "want_app_click" | "checkout_started" | "payment_completed";
 
 declare global {
   interface Window { gtag?: (...a: unknown[]) => void; fbq?: (...a: unknown[]) => void; dataLayer?: unknown[] }
 }
 
-const PIXEL: Partial<Record<EventName, string>> = { page_view: "PageView", demo_started: "ViewContent", lead_created: "Lead", want_app_click: "Contact" };
+const PIXEL: Partial<Record<EventName, string>> = { page_view: "PageView", demo_started: "ViewContent", lead_created: "Lead", want_app_click: "Contact", checkout_started: "InitiateCheckout", payment_completed: "Purchase" };
 
 export function utm(): Record<string, string> {
   const p = new URLSearchParams(location.search);
