@@ -1,0 +1,6 @@
+/* Snimak ekrana u okviru telefona — deli ga početna stranica i admin */
+.h-shot { aspect-ratio: 390 / 844; max-width: 100%; padding: 5px; border-radius: 30px; background: #1C1E22; box-shadow: 0 0 0 1px #3A3D43, 0 18px 40px -22px rgb(20 22 26 / .5); }
+.h-shot-screen { width: 100%; height: 100%; border-radius: 25px; overflow: hidden; background: #000; }
+.h-shot-screen img { width: 100%; height: 100%; object-fit: cover; object-position: top; display: block; }
+.h-shot-empty { display: grid; place-items: center; height: 100%; color: #8B909A; font-size: 13px; padding: 12px; text-align: center; }
+

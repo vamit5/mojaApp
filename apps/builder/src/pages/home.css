@@ -125,3 +125,87 @@
   .h-hero-actions .b-btn { flex: 1 1 100%; }
   .h-phone-box { height: 580px; }
 }
+
+/* ── Ko stoji iza ── */
+.h-who { display: inline-flex; align-items: center; gap: 12px; margin-top: 22px; padding: 8px 14px 8px 8px; border-radius: 999px; background: var(--panel); box-shadow: inset 0 0 0 1px var(--line); color: var(--ink); text-decoration: none; max-width: 100%; }
+.h-who > span { display: flex; flex-direction: column; min-width: 0; line-height: 1.25; }
+.h-who strong { font-size: 15px; }
+.h-who > span > span { font-size: 13px; color: var(--ink-2); }
+.h-who svg { color: var(--ink-3); flex: none; }
+.h-avatar { border-radius: 50%; object-fit: cover; flex: none; display: block; }
+.h-avatar.is-initials { display: grid; place-items: center; background: var(--ink); color: #fff; font-weight: 650; }
+
+.h-about { display: grid; grid-template-columns: minmax(0, .8fr) minmax(0, 1.2fr); gap: 56px; align-items: center; }
+.h-about-photo img, .h-about-ph { width: 100%; aspect-ratio: 4 / 5; border-radius: 18px; object-fit: cover; display: block; background: var(--stage); }
+.h-about-ph { display: grid; place-items: center; }
+.h-about-ph span { font-size: 72px; font-weight: 650; color: var(--ink-3); letter-spacing: -.03em; }
+.h-about-name { font-size: 17px; margin: 0 0 18px; color: var(--ink-2); }
+.h-about-name strong { color: var(--ink); }
+.h-about-p { font-size: 17px; line-height: 1.6; margin: 0 0 14px; max-width: 60ch; }
+.h-about-list { list-style: none; margin: 22px 0 0; padding: 18px 0 0; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 10px; }
+.h-about-list li { display: flex; gap: 10px; align-items: flex-start; font-weight: 550; }
+.h-about-list svg { flex: none; margin-top: 4px; }
+.h-contact { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 24px; }
+.h-contact .b-btn { height: 46px; }
+
+/* ── Projekti ── */
+.h-projects { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 16px; }
+.h-project { display: flex; flex-direction: column; gap: 0; padding: 0; border: 0; text-align: left; border-radius: 18px; background: var(--panel); box-shadow: inset 0 0 0 1px var(--line); overflow: hidden; color: var(--ink); transition: box-shadow .15s; }
+.h-project:hover { box-shadow: inset 0 0 0 1.5px var(--ink); }
+.h-project .h-shot { margin: 24px auto 0; width: 62%; }
+.h-project-body { display: flex; flex-direction: column; gap: 6px; padding: 18px 20px 20px; border-top: 1px solid var(--line); flex: 1; }
+.h-project-body h3 { font-size: 19px; margin: 4px 0 0; }
+.h-project-body p { margin: 0; color: var(--ink-2); font-size: 14.5px; }
+.h-project-foot { display: flex; justify-content: space-between; align-items: center; margin-top: auto; padding-top: 10px; font-size: 14px; }
+.h-project-more { display: inline-flex; align-items: center; gap: 2px; font-weight: 600; margin-left: auto; }
+.h-kind { align-self: flex-start; font-size: 12px; font-weight: 650; padding: 3px 9px; border-radius: 999px; }
+.h-kind.is-client { background: #E3F2EA; color: var(--ok); }
+.h-kind.is-demo { background: #ECEDEF; color: var(--ink-2); }
+
+.h-case-scrim { position: fixed; inset: 0; z-index: 60; background: rgb(20 22 26 / .5); display: grid; place-items: center; padding: 24px; }
+.h-case { position: relative; width: 100%; max-width: 940px; max-height: calc(100vh - 48px); overflow-y: auto; overflow-x: hidden; background: var(--panel); border-radius: 20px; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr); }
+.h-case-close { position: absolute; top: 14px; right: 14px; z-index: 2; width: 40px; height: 40px; border-radius: 50%; border: 0; background: var(--paper); display: grid; place-items: center; }
+.h-case-shots { display: flex; gap: 14px; overflow-x: auto; scroll-snap-type: x mandatory; padding: 28px; background: var(--stage); scrollbar-width: none; align-items: center; }
+.h-case-shots::-webkit-scrollbar { display: none; }
+.h-case-shots .h-shot { flex: none; width: min(260px, 70vw); scroll-snap-align: center; }
+.h-case-body { padding: 32px 32px 28px; display: flex; flex-direction: column; gap: 8px; }
+.h-case-body h3 { font-size: 28px; letter-spacing: -.02em; margin: 6px 0 0; }
+.h-case-body h4 { font-size: 13px; font-weight: 650; color: var(--ink-2); margin: 14px 0 0; }
+.h-case-body p { margin: 0; line-height: 1.55; }
+.h-case-meta { color: var(--ink-2); font-size: 14px; }
+.h-case-body ul { list-style: none; margin: 4px 0 0; padding: 0; display: flex; flex-direction: column; gap: 8px; }
+.h-case-body li { display: flex; gap: 8px; align-items: flex-start; }
+.h-case-body li svg { flex: none; margin-top: 4px; }
+.h-case-body .b-btn { margin-top: 18px; align-self: flex-start; }
+
+.h-footer { align-items: center; }
+.h-footer-who { display: flex; flex-direction: column; }
+.h-footer-who strong { color: var(--ink); }
+.h-footer-links { display: flex; flex-wrap: wrap; gap: 6px 18px; }
+.h-footer-links a { color: var(--ink); text-decoration: none; font-weight: 550; }
+.h-footer-note { flex-basis: 100%; }
+
+@media (max-width: 960px) {
+  .h-about { grid-template-columns: minmax(0, 1fr); gap: 24px; }
+  .h-about-photo { max-width: 420px; }
+  .h-projects { grid-template-columns: minmax(0, 1fr); }
+  .h-project { flex-direction: row; align-items: stretch; }
+  .h-project .h-shot { width: 120px; margin: 16px 0 16px 16px; flex: none; border-radius: 20px; padding: 4px; }
+  .h-project .h-shot-screen { border-radius: 16px; }
+  .h-project-body { border-top: 0; padding: 16px; }
+  .h-case-scrim { padding: 0; place-items: end stretch; }
+  .h-case { grid-template-columns: minmax(0, 1fr); max-height: 92vh; border-radius: 20px 20px 0 0; }
+  .h-case-shots { padding: 20px 16px; }
+  .h-case-shots .h-shot { width: min(210px, 58vw); }
+  .h-case-body { padding: 22px 18px calc(28px + env(safe-area-inset-bottom)); }
+  .h-case-body .b-btn { align-self: stretch; }
+}
+@media (max-width: 600px) {
+  .h-about-p { font-size: 16px; }
+  .h-contact .b-btn { flex: 1 1 100%; }
+  .h-project .h-shot { width: 96px; }
+  .h-project-body h3 { font-size: 17px; }
+  .h-project-body p { font-size: 14px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; }
+  .h-who { margin-top: 16px; }
+  .h-footer { flex-direction: column; align-items: flex-start; gap: 14px; padding-bottom: 96px; }
+}

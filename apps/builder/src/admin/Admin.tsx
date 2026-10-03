@@ -8,6 +8,7 @@ import { Phone } from "../components/Phone";
 import { Link } from "../router";
 import { money, type OfferItem, type OfferPhase } from "../pages/Offer";
 import { STAGES } from "../pages/Project";
+import { SiteEditor } from "./SiteEditor";
 import "../pages/share.css";
 import "./admin.css";
 
@@ -106,7 +107,7 @@ function Login() {
 /* ───────────────────────── glavni ekran ───────────────────────── */
 
 function Dashboard({ email }: { email: string }) {
-  const [view, setView] = useState<"leads" | "offers" | "projects">("leads");
+  const [view, setView] = useState<"leads" | "offers" | "projects" | "site">("leads");
   const [projects, setProjects] = useState<ProjectRow[]>([]);
   const [openProject, setOpenProject] = useState<ProjectRow | null>(null);
   const [leads, setLeads] = useState<Lead[]>([]);
@@ -153,6 +154,7 @@ function Dashboard({ email }: { email: string }) {
           <button type="button" className={view === "leads" ? "is-active" : ""} onClick={() => setView("leads")}><Icon name="users" size={18} /> Leadovi <span>{counts.nov || ""}</span></button>
           <button type="button" className={view === "offers" ? "is-active" : ""} onClick={() => setView("offers")}><Icon name="tag" size={18} /> Ponude <span>{stats.accepted || ""}</span></button>
           <button type="button" className={view === "projects" ? "is-active" : ""} onClick={() => setView("projects")}><Icon name="phone" size={18} /> Projekti <span>{stats.active || ""}</span></button>
+          <button type="button" className={view === "site" ? "is-active" : ""} onClick={() => setView("site")}><Icon name="home" size={18} /> Sajt</button>
         </nav>
         <div className="a-side-foot">
           <span>{email}</span>
@@ -203,8 +205,10 @@ function Dashboard({ email }: { email: string }) {
           </>
         ) : view === "offers" ? (
           <OffersList offers={offers} onOpenLead={(id) => { const l = leads.find((x) => x.id === id); if (l) { setView("leads"); setOpen(l); } }} />
-        ) : (
+        ) : view === "projects" ? (
           <ProjectsList projects={projects} onOpen={setOpenProject} onRefresh={load} />
+        ) : (
+          <SiteEditor />
         )}
       </main>
 

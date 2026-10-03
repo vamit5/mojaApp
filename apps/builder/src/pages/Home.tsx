@@ -7,6 +7,8 @@ import { Link } from "../router";
 import { supabase } from "../lib/supabase";
 import { track } from "../lib/analytics";
 import { FAQ, HOW_IT_WORKS } from "../content";
+import { useSiteContent, waLink, igLink } from "../lib/siteContent";
+import { About, Avatar, Projects } from "./HomeSections";
 import "./home.css";
 
 const HERO_APPS = [
@@ -57,6 +59,7 @@ export function Home() {
     return () => window.removeEventListener("scroll", on);
   }, []);
   const { plans, maintenance } = usePlans();
+  const { team, portfolio } = useSiteContent();
   const heroConfig = useMemo(() => createConfig(HERO_APPS[heroIdx].key, HERO_APPS[heroIdx].name), [heroIdx]);
 
   useEffect(() => {
@@ -72,6 +75,8 @@ export function Home() {
       <header className="h-nav">
         <Link to="/" className="b-wordmark"><span className="b-mark" aria-hidden="true" />MojApp</Link>
         <nav aria-label="Glavni meni">
+          {portfolio.length > 0 && <a href="#projekti">Projekti</a>}
+          {team && <a href="#o-meni">O meni</a>}
           <a href="#kako-radi">Kako radi</a>
           <a href="#cene">Cene</a>
           <a href="#pitanja">Pitanja</a>
@@ -88,6 +93,13 @@ export function Home() {
             <Link to="/demo" className="b-btn is-big" onClick={cta("hero")}>Napravite besplatan demo</Link>
             <a href="#kako-radi" className="b-btn is-ghost is-big">Pogledajte kako radi</a>
           </div>
+          {team && (
+            <a href="#o-meni" className="h-who">
+              <Avatar team={team} size={44} />
+              <span><strong>{team.name}</strong><span>Lično vodim svaki projekat{team.city ? ` · ${team.city}` : ""}</span></span>
+              <Icon name="chevronRight" size={18} />
+            </a>
+          )}
         </div>
 
         <div className="h-hero-phone" onPointerDown={() => setPaused(true)}>
@@ -114,6 +126,9 @@ export function Home() {
           <div><dt>Cena</dt><dd>od {eur(PLANS.start.once)}</dd></div>
         </dl>
       </section>
+
+      {team && <About team={team} />}
+      <Projects items={portfolio} />
 
       <section className="h-section" aria-labelledby="biznis">
         <h2 id="biznis">Čime se bavite?</h2>
@@ -223,8 +238,16 @@ export function Home() {
       </AnimatePresence>
 
       <footer className="h-footer">
-        <span>© {new Date().getFullYear()} MojApp</span>
-        <span>Demo projekti na sajtu su primeri, ne stvarni klijenti.</span>
+        <div className="h-footer-who">
+          <strong>MojApp</strong>
+          {team && <span>{team.name}{team.city ? `, ${team.city}` : ""}</span>}
+        </div>
+        <div className="h-footer-links">
+          {waLink(team?.whatsapp) && <a href={waLink(team?.whatsapp)!} target="_blank" rel="noreferrer">WhatsApp</a>}
+          {igLink(team?.instagram) && <a href={igLink(team?.instagram)!} target="_blank" rel="noreferrer">Instagram</a>}
+          {team?.email && <a href={`mailto:${team.email}`}>{team.email}</a>}
+        </div>
+        <span className="h-footer-note">© {new Date().getFullYear()} MojApp. Primeri sadržaja u demo aplikacijama označeni su kao „Primer“.</span>
       </footer>
     </div>
   );

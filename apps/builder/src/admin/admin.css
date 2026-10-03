@@ -121,6 +121,35 @@
 .a-pill.is-stage-testiranje, .a-pill.is-stage-spremno, .a-pill.is-stage-prodavnice { background: #F6EEDC; color: #7A5410; }
 .a-pill.is-stage-objavljeno { background: #E3F2EA; color: var(--ok); }
 
+.a-site-box { margin-bottom: 14px; }
+.a-team { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: 20px; align-items: start; }
+.a-photo-pick { position: relative; display: grid; place-items: center; aspect-ratio: 4 / 5; border-radius: 14px; background: var(--paper); box-shadow: inset 0 0 0 1.5px dashed var(--line-2); border: 1.5px dashed var(--line-2); overflow: hidden; cursor: pointer; color: var(--ink-2); text-align: center; font-size: 13px; }
+.a-photo-pick span { display: flex; flex-direction: column; align-items: center; gap: 6px; }
+.a-photo-pick img { width: 100%; height: 100%; object-fit: cover; }
+.a-photo-pick input, .a-pf-add input { position: absolute; inset: 0; opacity: 0; cursor: pointer; }
+.a-photo-pick em { position: absolute; left: 8px; bottom: 8px; font-style: normal; font-size: 12px; background: #fff; padding: 2px 8px; border-radius: 6px; }
+.a-three { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.a-portfolio { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.a-portfolio li { display: flex; align-items: center; gap: 14px; padding: 10px 0; border-top: 1px solid var(--line); }
+.a-pf-shot { width: 44px; flex: none; }
+.a-pf-shot .h-shot { padding: 2px; border-radius: 10px; }
+.a-pf-shot .h-shot-screen { border-radius: 8px; }
+.a-pf-text { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+.a-pf-actions { display: flex; align-items: center; gap: 6px; }
+.a-pf-actions .b-btn { height: 36px; font-size: 13.5px; padding: 0 14px; }
+.a-icon-btn { width: 32px; height: 32px; border-radius: 8px; border: 0; background: var(--paper); display: grid; place-items: center; }
+.a-icon-btn:disabled { opacity: .35; }
+.a-pf-images { display: flex; flex-wrap: wrap; gap: 8px; }
+.a-pf-img { position: relative; width: 76px; aspect-ratio: 390 / 844; border-radius: 10px; overflow: hidden; background: #000; }
+.a-pf-img img { width: 100%; height: 100%; object-fit: cover; object-position: top; }
+.a-pf-img-actions { position: absolute; top: 4px; right: 4px; display: flex; gap: 4px; }
+.a-pf-img-actions button { width: 24px; height: 24px; border-radius: 50%; border: 0; background: rgb(0 0 0 / .6); color: #fff; display: grid; place-items: center; }
+.a-pf-add { position: relative; width: 76px; aspect-ratio: 390 / 844; border-radius: 10px; border: 1.5px dashed var(--line-2); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; font-size: 12px; color: var(--ink-2); cursor: pointer; }
+.a-pf-foot { flex-wrap: wrap; align-items: center; }
+.a-spacer { flex: 1; }
+.a-danger { color: var(--err) !important; }
+.b-field > span + .a-pf-images { margin-top: 2px; }
+
 /* Telefon: redovi tabele postaju kartice */
 @media (max-width: 700px) {
   .a-stats { gap: 8px; margin-bottom: 20px; }
@@ -144,4 +173,8 @@
   .a-box-head { flex-wrap: wrap; gap: 8px; }
   .a-offer-row { flex-wrap: wrap; }
   .a-offer-modal { padding: 20px; }
+  .a-team { grid-template-columns: minmax(0, 1fr); }
+  .a-photo-pick { max-width: 180px; }
+  .a-three, .a-two { grid-template-columns: minmax(0, 1fr); }
+  .a-portfolio li { flex-wrap: wrap; }
 }
