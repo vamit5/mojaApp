@@ -1,0 +1,20 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "jsx": "react-jsx",
+    "strict": true,
+    "noUnusedLocals": true,
+    "skipLibCheck": true,
+    "isolatedModules": true,
+    "noEmit": true,
+    "baseUrl": ".",
+    "paths": {
+      "@mojapp/core": ["packages/core/src/index.ts"],
+      "@mojapp/ui": ["packages/ui/src/index.ts"],
+      "@mojapp/app-engine": ["packages/app-engine/src/index.ts"]
+    }
+  }
+}
