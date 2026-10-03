@@ -1,0 +1,19 @@
+.s-center { min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 14px; padding: 24px; text-align: center; background: var(--paper); }
+.s-missing h1 { font-size: 28px; letter-spacing: -.02em; margin: 0; }
+.s-missing p { color: var(--ink-2); margin: 0 0 8px; }
+.s-spinner { width: 32px; height: 32px; border-radius: 50%; border: 3px solid var(--line); border-top-color: var(--ink); animation: s-spin .8s linear infinite; }
+@keyframes s-spin { to { transform: rotate(360deg); } }
+.s-root { height: 100%; }
+.s-desktop { height: 100vh; display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); background: var(--paper); }
+.s-info { display: flex; flex-direction: column; justify-content: center; padding: 48px max(32px, 8vw); }
+.s-kicker { font-size: 13px; color: var(--ink-2); font-weight: 550; margin-bottom: 10px; }
+.s-info h1 { font-size: clamp(36px, 4.4vw, 60px); line-height: 1.02; letter-spacing: -.04em; font-weight: 650; margin: 0 0 16px; text-wrap: balance; }
+.s-info > p { color: var(--ink-2); font-size: 17px; max-width: 42ch; margin: 0 0 28px; }
+.s-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.s-note { font-size: 13px; color: var(--ink-2); margin: 20px 0 40px; }
+.s-brand { display: inline-flex; align-items: center; gap: 8px; color: var(--ink-2); font-size: 13px; font-weight: 550; text-decoration: none; }
+.s-brand .b-mark { width: 10px; height: 16px; border-width: 2px; border-color: var(--ink-2); }
+.s-phone { background: var(--stage); padding: 32px; display: flex; }
+@media (max-width: 800px) {
+  .s-mobile { display: block; position: fixed; inset: 0; padding-top: env(safe-area-inset-top); background: #000; }
+}

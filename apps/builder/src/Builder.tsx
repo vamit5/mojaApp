@@ -4,6 +4,8 @@ import { AppEngine } from "@mojapp/app-engine";
 import { createConfig, estimate, INDUSTRIES, industryByKey, MODULE_KEYS, MODULES, PLANS, type AppConfig, type ModuleKey } from "@mojapp/core";
 import { compressImage, dominantColor, Icon } from "@mojapp/ui";
 import { track } from "./lib/analytics";
+import { Phone } from "./components/Phone";
+import { Link } from "./router";
 import { submitLead, type LeadInput } from "./lib/leads";
 
 const STEPS = [
@@ -25,7 +27,8 @@ function loadSaved(): { config: AppConfig; step: number; started: boolean } | nu
 
 export function Builder() {
   const saved = useMemo(loadSaved, []);
-  const [config, setConfig] = useState<AppConfig>(() => saved?.config ?? createConfig("restoran", "Vaš biznis"));
+  const urlIndustry = useMemo(() => new URLSearchParams(location.search).get("industry"), []);
+  const [config, setConfig] = useState<AppConfig>(() => (urlIndustry && INDUSTRIES.some((i) => i.key === urlIndustry) ? createConfig(urlIndustry, saved?.config.brand.name ?? "Vaš biznis") : saved?.config ?? createConfig("restoran", "Vaš biznis")));
   const [step, setStep] = useState(saved?.step ?? 0);
   const [started, setStarted] = useState(saved?.started ?? false);
   const [ready, setReady] = useState(false);
@@ -33,7 +36,6 @@ export function Builder() {
   const [mobilePreview, setMobilePreview] = useState(false);
   const colorsTouched = useRef(false);
 
-  useEffect(() => { track("page_view", { page: "builder" }); }, []);
   useEffect(() => {
     try { localStorage.setItem(STORAGE_KEY, JSON.stringify({ config, step, started })); } catch { /* fotografije mogu preći kvotu — demo i dalje radi */ }
   }, [config, step, started]);
@@ -60,7 +62,7 @@ export function Builder() {
   return (
     <div className="b-root">
       <header className="b-top">
-        <div className="b-wordmark"><span className="b-mark" aria-hidden="true" />MojApp</div>
+        <Link to="/" className="b-wordmark"><span className="b-mark" aria-hidden="true" />MojApp</Link>
         <div className="b-steps" aria-label={`Korak ${step + 1} od ${STEPS.length}`}>
           {STEPS.map((s, i) => (
             <button type="button" key={s.key} className={`b-step-dot ${i === step ? "is-current" : ""} ${i < step ? "is-done" : ""}`} onClick={() => go(i)} aria-label={`Korak ${i + 1}: ${s.title}`} />
@@ -298,28 +300,6 @@ function StepFeatures({ config, update }: StepProps) {
 
 /* ───────────────────────── telefon i customizer ───────────────────────── */
 
-function Phone({ config, introKey }: { config: AppConfig; introKey: number }) {
-  const wrap = useRef<HTMLDivElement>(null);
-  const [scale, setScale] = useState(0.8);
-  useEffect(() => {
-    const el = wrap.current;
-    if (!el) return;
-    const ro = new ResizeObserver(([e]) => setScale(Math.min(1, (e.contentRect.height - 8) / 860, (e.contentRect.width - 8) / 404)));
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
-  return (
-    <div className="b-phone-wrap" ref={wrap}>
-      <div className="b-phone" style={{ transform: `scale(${scale})` }}>
-        <div className="b-phone-screen">
-          <AppEngine config={config} introKey={introKey} />
-          <div className="b-island" />
-        </div>
-      </div>
-    </div>
-  );
-}
-
 const SWATCHES = ["#9E2B25", "#C2452D", "#8A5A7A", "#5A4FCF", "#2F5D8A", "#2E6E8E", "#3D6B66", "#3F7D3A", "#A0712B", "#1F1F22"];
 
 function Customizer({ config, update, onColor }: StepProps & { onColor: () => void }) {
@@ -374,7 +354,8 @@ function Customizer({ config, update, onColor }: StepProps & { onColor: () => vo
 
 function Ready({ config, plan, introKey, onClose }: { config: AppConfig; plan: "start" | "business" | "custom"; introKey: number; onClose: () => void }) {
   const [form, setForm] = useState<LeadInput["intent"] | null>(null);
-  const [done, setDone] = useState<{ intent: LeadInput["intent"]; name: string } | null>(null);
+  const [done, setDone] = useState<{ intent: LeadInput["intent"]; name: string; slug?: string } | null>(null);
+  const [copied, setCopied] = useState(false);
   const p = plan === "start" ? PLANS.start : PLANS.business;
 
   return (
@@ -387,7 +368,17 @@ function Ready({ config, plan, introKey, onClose }: { config: AppConfig; plan: "
               <h1 className="b-ready-title">Hvala, {done.name.split(" ")[0]}.</h1>
               <p className="b-ready-lead">{done.intent === "want_app"
                 ? `Javljamo vam se ${RESPONSE_TIME} sa ponudom za ${config.brand.name}. Demo ostaje sačuvan tačno ovakav kakav jeste.`
-                : "Link ka vašem demou stiže na email. Možete ga otvoriti na telefonu i poslati partneru."}</p>
+                : "Sačuvali smo vaš demo. Otvorite link na telefonu ili ga pošaljite partneru."}</p>
+              {done.slug && (
+                <div className="b-share">
+                  <span>Link ka vašoj aplikaciji</span>
+                  <div className="b-share-row">
+                    <input id="share-link" readOnly value={`${location.origin}/d/${done.slug}`} onFocus={(e) => e.target.select()} />
+                    <button type="button" className="b-btn" onClick={async () => { try { await navigator.clipboard.writeText(`${location.origin}/d/${done.slug}`); setCopied(true); } catch { /* ručno kopiranje */ } }}>{copied ? "Kopirano" : "Kopiraj"}</button>
+                  </div>
+                  <a className="b-link" href={`/d/${done.slug}`} target="_blank" rel="noreferrer">Otvori u novom prozoru</a>
+                </div>
+              )}
               {done.intent === "send_demo" && <button type="button" className="b-btn is-big" onClick={() => { setDone(null); setForm("want_app"); }}>Želim ovu aplikaciju</button>}
             </>
           ) : (
@@ -413,13 +404,13 @@ function Ready({ config, plan, introKey, onClose }: { config: AppConfig; plan: "
       </div>
 
       <AnimatePresence>
-        {form && <LeadForm intent={form} config={config} onClose={() => setForm(null)} onDone={(name) => { setDone({ intent: form, name }); setForm(null); }} />}
+        {form && <LeadForm intent={form} config={config} onClose={() => setForm(null)} onDone={(name, slug) => { setDone({ intent: form, name, slug }); setForm(null); }} />}
       </AnimatePresence>
     </motion.div>
   );
 }
 
-function LeadForm({ intent, config, onClose, onDone }: { intent: LeadInput["intent"]; config: AppConfig; onClose: () => void; onDone: (name: string) => void }) {
+function LeadForm({ intent, config, onClose, onDone }: { intent: LeadInput["intent"]; config: AppConfig; onClose: () => void; onDone: (name: string, slug?: string) => void }) {
   const [v, setV] = useState({ name: "", email: "", phone: "", consent: false });
   const [error, setError] = useState("");
   const [sending, setSending] = useState(false);
@@ -436,7 +427,7 @@ function LeadForm({ intent, config, onClose, onDone }: { intent: LeadInput["inte
     setSending(false);
     if (!res.ok) return setError(res.error);
     track("lead_created", { intent, industry: config.industry });
-    onDone(v.name.trim());
+    onDone(v.name.trim(), res.demoSlug);
   };
 
   return (

@@ -23,6 +23,30 @@ const Body = z.object({
   utm: z.record(z.string().max(120)).optional(),
 });
 
+/** Izvlači data: slike iz configa i ostavlja oznake media:N na njihovom mestu. */
+// deno-lint-ignore no-explicit-any
+function extractMedia(input: any) {
+  const config = structuredClone(input);
+  const items: { key: string; dataUrl: string }[] = [];
+  const take = (v: unknown) => {
+    if (typeof v !== "string" || !v.startsWith("data:image/")) return v;
+    const key = `media:${items.length}`;
+    items.push({ key, dataUrl: v });
+    return key;
+  };
+  if (config.brand) config.brand.logo = take(config.brand.logo);
+  if (config.content?.photos) config.content.photos = config.content.photos.map(take);
+  for (const c of config.catalog ?? []) for (const it of c.items ?? []) it.photo = take(it.photo);
+  for (const s of config.staff ?? []) s.photo = take(s.photo);
+  return { config, items };
+}
+
+/** Zamenjuje oznake media:N javnim URL-ovima; neuspele slike se uklanjaju. */
+// deno-lint-ignore no-explicit-any
+function applyMedia(input: any, urls: Record<string, string>) {
+  return JSON.parse(JSON.stringify(input), (_k, v) => (typeof v === "string" && v.startsWith("media:") ? urls[v] : v));
+}
+
 const json = (status: number, body: unknown) =>
   new Response(JSON.stringify(body), { status, headers: { ...CORS, "Content-Type": "application/json" } });
 
@@ -48,11 +72,26 @@ Deno.serve(async (req) => {
   const { data: allowed } = await db.rpc("rate_limit_hit", { p_bucket: "lead", p_key: await sha256(ip), p_max: 5, p_window: "1 hour" });
   if (allowed === false) return json(429, { error: "Previše zahteva. Pokušajte ponovo za sat vremena." });
 
-  // TODO(faza 2): fotografije iz data URL-ova prebaciti u bucket demo-assets i u config upisati putanje.
+  // Demo se prvo čuva bez slika (dobija id), zatim se slike prebacuju u Storage i config dobija javne URL-ove.
+  const media = extractMedia(config);
   const { data: demo, error: demoErr } = await db.from("demos")
-    .insert({ config, status: "saved", session_token_hash: await sha256(crypto.randomUUID()), utm: utm ?? {} })
+    .insert({ config: media.config, status: "saved", session_token_hash: await sha256(crypto.randomUUID()), utm: utm ?? {} })
     .select("id, slug").single();
   if (demoErr) return json(500, { error: "Čuvanje demoa nije uspelo. Pokušajte ponovo." });
+
+  if (media.items.length) {
+    const urls: Record<string, string> = {};
+    for (const m of media.items.slice(0, 20)) {
+      const match = /^data:(image\/(jpeg|png|webp));base64,(.+)$/.exec(m.dataUrl);
+      if (!match) continue;
+      const bytes = Uint8Array.from(atob(match[3]), (c) => c.charCodeAt(0));
+      if (bytes.length > 8 * 1024 * 1024) continue;
+      const path = `${demo.id}/${crypto.randomUUID()}.${match[2] === "jpeg" ? "jpg" : match[2]}`;
+      const { error } = await db.storage.from("demo-media").upload(path, bytes, { contentType: match[1], upsert: false });
+      if (!error) urls[m.key] = db.storage.from("demo-media").getPublicUrl(path).data.publicUrl;
+    }
+    await db.from("demos").update({ config: applyMedia(media.config, urls) }).eq("id", demo.id);
+  }
 
   const { data: row, error: leadErr } = await db.from("leads").insert({
     name: lead.name, email: lead.email.toLowerCase(), phone: lead.phone || null,
@@ -65,6 +104,6 @@ Deno.serve(async (req) => {
   await db.from("demos").update({ lead_id: row.id }).eq("id", demo.id);
   await db.from("events").insert({ name: "lead_created", demo_id: demo.id, lead_id: row.id, utm: utm ?? {}, props: { intent: lead.intent } });
 
-  // TODO(faza 2): Resend — email klijentu sa linkom demo.mojapp.rs/d/{slug} i obaveštenje vlasniku.
+  // TODO: Resend — email klijentu sa linkom /d/{slug} i obaveštenje vlasniku.
   return json(200, { ok: true, slug: demo.slug });
 });

@@ -1,0 +1,108 @@
+/* Početna stranica. Tokeni dolaze iz builder.css (:root). Okvir ostaje neutralan, boja dolazi iz aplikacije u telefonu. */
+.page-loading { min-height: 100vh; background: var(--paper); }
+.h-page { background: var(--paper); color: var(--ink); }
+.h-section > h2, .h-final h2 { font-size: clamp(28px, 3.2vw, 40px); line-height: 1.08; letter-spacing: -.03em; font-weight: 650; margin: 0 0 12px; text-wrap: balance; }
+.h-section h3 { font-size: 17px; font-weight: 650; letter-spacing: -.01em; margin: 0 0 6px; }
+.h-lead { color: var(--ink-2); font-size: 17px; max-width: 56ch; margin: 0 0 32px; }
+
+.h-nav { position: sticky; top: 0; z-index: 20; display: flex; align-items: center; gap: 28px; height: 64px; padding: 0 max(24px, calc((100vw - 1180px) / 2)); background: color-mix(in srgb, var(--paper) 88%, transparent); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px); border-bottom: 1px solid transparent; }
+.h-nav .b-wordmark { color: var(--ink); text-decoration: none; }
+.h-nav nav { display: flex; gap: 22px; margin-left: auto; }
+.h-nav nav a { color: var(--ink-2); text-decoration: none; font-size: 14.5px; font-weight: 500; }
+.h-nav nav a:hover { color: var(--ink); }
+.h-nav-cta { height: 40px; padding: 0 16px; font-size: 14px; text-decoration: none; }
+.b-btn { text-decoration: none; }
+.b-btn.is-light { background: #fff; color: var(--ink); }
+.b-btn.is-light:hover { background: #ECEDEF; }
+
+.h-hero { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, .95fr); gap: 48px; align-items: center; max-width: 1180px; margin: 0 auto; padding: 40px 24px 72px; }
+.h-hero-text h1 { font-size: clamp(42px, 5.6vw, 76px); line-height: .98; letter-spacing: -.045em; font-weight: 650; margin: 0 0 20px; text-wrap: balance; }
+.h-hero-sub { font-size: clamp(22px, 2.2vw, 28px); font-weight: 550; letter-spacing: -.02em; margin: 0 0 14px; }
+.h-hero-body { font-size: 17px; color: var(--ink-2); max-width: 46ch; margin: 0 0 30px; }
+.h-hero-actions { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 36px; }
+.h-facts { display: flex; flex-wrap: wrap; gap: 12px 36px; margin: 0; padding-top: 22px; border-top: 1px solid var(--line); }
+.h-facts dt { font-size: 13px; color: var(--ink-2); }
+.h-facts dd { margin: 2px 0 0; font-size: 18px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.h-hero-phone { display: flex; flex-direction: column; align-items: center; gap: 14px; }
+.h-phone-box { width: 100%; height: min(720px, calc(100vh - 170px)); min-height: 540px; display: flex; }
+.h-switch { position: relative; display: inline-flex; padding: 3px; border-radius: 999px; background: var(--panel); box-shadow: inset 0 0 0 1px var(--line); }
+.h-switch button { position: relative; height: 34px; padding: 0 16px; border: 0; background: none; border-radius: 999px; font-size: 13.5px; font-weight: 550; color: var(--ink-2); }
+.h-switch button.is-active { color: #fff; }
+.h-switch button span:not(.h-switch-bg) { position: relative; z-index: 1; }
+.h-switch-bg { position: absolute; inset: 0; border-radius: 999px; background: var(--ink); }
+.h-phone-note { margin: 0; font-size: 13px; color: var(--ink-2); }
+
+.h-section { max-width: 1180px; margin: 0 auto; padding: 72px 24px; border-top: 1px solid var(--line); }
+.h-industries { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px; }
+.h-ind { display: flex; flex-direction: column; gap: 18px; padding: 14px; border-radius: var(--r); background: var(--panel); box-shadow: inset 0 0 0 1px var(--line); color: var(--ink); text-decoration: none; font-weight: 550; font-size: 14px; transition: box-shadow .15s; }
+.h-ind svg { color: var(--ink-2); }
+.h-ind:hover { box-shadow: inset 0 0 0 1.5px var(--ink); }
+
+.h-steps { list-style: none; margin: 8px 0 0; padding: 0; display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0; counter-reset: step; }
+.h-steps li { counter-increment: step; padding: 0 24px 0 0; position: relative; }
+.h-steps li::before { content: counter(step); display: grid; place-items: center; width: 34px; height: 34px; border-radius: 50%; background: var(--ink); color: #fff; font-weight: 600; font-size: 15px; margin-bottom: 18px; position: relative; z-index: 1; }
+.h-steps li:not(:last-child)::after { content: ""; position: absolute; top: 17px; left: 34px; right: 0; height: 1px; background: var(--line-2); }
+.h-steps p { color: var(--ink-2); margin: 0 0 10px; }
+.h-step-meta { font-size: 13px; font-weight: 600; }
+
+.h-modules { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); column-gap: 48px; }
+.h-modules li { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; padding: 14px 0; border-bottom: 1px solid var(--line); }
+.h-modules li div { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+.h-modules strong { font-weight: 600; }
+.h-modules span { color: var(--ink-2); font-size: 14px; }
+.h-modules em { font-style: normal; }
+
+.h-transparent .h-split { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 24px; }
+.h-split > div { padding: 24px; border-radius: var(--r); background: var(--panel); box-shadow: inset 0 0 0 1px var(--line); }
+.h-split ul { margin: 10px 0 0; padding: 0; list-style: none; display: flex; flex-direction: column; gap: 10px; }
+.h-split li { padding-left: 18px; position: relative; color: var(--ink-2); }
+.h-split li::before { content: ""; position: absolute; left: 0; top: .62em; width: 7px; height: 7px; border-radius: 2px; background: var(--ink); }
+.h-split > div:last-child li::before { background: var(--line-2); }
+.h-footnote { font-size: 13px; color: var(--ink-2); margin: 18px 0 0; max-width: 72ch; }
+
+.h-plans { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 12px; }
+.h-plan { padding: 26px; border-radius: 16px; background: var(--panel); box-shadow: inset 0 0 0 1px var(--line); display: flex; flex-direction: column; }
+.h-plan.is-main { box-shadow: inset 0 0 0 2px var(--ink); }
+.h-plan-name { font-size: 13px; font-weight: 650; letter-spacing: .06em; color: var(--ink-2); }
+.h-plan-price { font-size: 38px; font-weight: 650; letter-spacing: -.03em; margin-top: 10px; font-variant-numeric: tabular-nums; }
+.h-plan-month { color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.h-plan-time { margin-top: 12px; font-size: 14px; font-weight: 600; }
+.h-plan ul { list-style: none; margin: 18px 0 0; padding: 18px 0 0; border-top: 1px solid var(--line); display: flex; flex-direction: column; gap: 9px; font-size: 14.5px; }
+.h-plan li { display: flex; gap: 8px; align-items: flex-start; }
+.h-plan li svg { flex: none; margin-top: 3px; }
+.h-plan-extra { color: var(--ink-2); margin: 18px 0 28px; }
+.h-center { display: flex; justify-content: center; }
+
+.h-faq { max-width: 780px; }
+.h-faq details { border-bottom: 1px solid var(--line); }
+.h-faq summary { list-style: none; display: flex; justify-content: space-between; gap: 16px; align-items: center; padding: 18px 0; font-weight: 600; font-size: 16.5px; cursor: pointer; }
+.h-faq summary::-webkit-details-marker { display: none; }
+.h-faq summary svg { flex: none; transition: transform .2s var(--ease); color: var(--ink-2); }
+.h-faq details[open] summary svg { transform: rotate(45deg); }
+.h-faq p { margin: 0 0 18px; color: var(--ink-2); max-width: 64ch; }
+
+.h-final { background: var(--ink); color: #fff; text-align: center; padding: 88px 24px; }
+.h-final h2 { color: #fff; }
+.h-final p { color: rgb(255 255 255 / .7); margin: 0 0 28px; font-size: 17px; }
+.h-footer { display: flex; flex-wrap: wrap; justify-content: space-between; gap: 8px 24px; max-width: 1180px; margin: 0 auto; padding: 24px; font-size: 13px; color: var(--ink-2); }
+
+@media (max-width: 960px) {
+  .h-hero { grid-template-columns: minmax(0, 1fr); gap: 28px; padding-top: 24px; }
+  .h-phone-box { height: 640px; min-height: 0; }
+  .h-industries { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  .h-steps { grid-template-columns: 1fr 1fr; gap: 28px 0; }
+  .h-steps li::after { display: none; }
+  .h-modules { grid-template-columns: 1fr; }
+  .h-plans, .h-transparent .h-split { grid-template-columns: 1fr; }
+}
+@media (max-width: 600px) {
+  .h-nav { gap: 12px; padding: 0 16px; }
+  .h-nav nav { display: none; }
+  .h-nav-cta { margin-left: auto; }
+  .h-hero, .h-section { padding-left: 16px; padding-right: 16px; }
+  .h-section { padding-top: 56px; padding-bottom: 56px; }
+  .h-industries { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .h-steps { grid-template-columns: 1fr; }
+  .h-hero-actions .b-btn { flex: 1 1 100%; }
+  .h-phone-box { height: 600px; }
+}

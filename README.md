@@ -43,9 +43,19 @@ Admin nalog: posle prve prijave u bazi postaviti `update profiles set role = 'ad
 - Sve što nije sadržaj klijenta nosi `placeholder: true` i u aplikaciji oznaku „Primer“.
 - Portfolio stavka tipa `demo` ne može imati rezultate (CHECK u bazi).
 
-## Sledeće (Faza 2 → 3)
+## Rute sajta
 
-1. Netlify sajt za builder + Supabase projekat (`mojapp-prod`), deploy funkcije.
-2. Prebacivanje fotografija iz demoa u `demo-assets` bucket; deljivi link `/d/{slug}`.
-3. Marketing početna stranica (hero sa živim engine-om).
-4. Admin: CRM kanban, procena, Generate Offer + PDF.
+| Ruta | Šta je |
+| --- | --- |
+| `/` | Početna stranica (cene čita iz baze) |
+| `/demo` (`?industry=salon`) | Demo builder |
+| `/d/{slug}` | Deljivi demo klijenta |
+| `/ponuda/{token}` | Javna ponuda: pregled, PDF (štampa), prihvatanje |
+| `/admin` | CRM: leadovi, statusi, beleške, demo, procena, Generate offer |
+
+## Sledeće
+
+1. Email obaveštenja (Resend): klijentu link demoa i ponude, vlasniku novi lead.
+2. Stripe: link za uplatu depozita iz prihvaćene ponude.
+3. Client portal sa fazama projekta.
+4. CMS za tekstove sajta i Instagram content sistem.
