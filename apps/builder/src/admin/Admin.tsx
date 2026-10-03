@@ -66,31 +66,27 @@ export function Admin() {
 
 function Login() {
   const [email, setEmail] = useState("");
-  const [sent, setSent] = useState(false);
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
   const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) { setError("Upišite ispravnu email adresu."); return; }
+    if (!password) { setError("Upišite lozinku."); return; }
     setBusy(true); setError("");
-    const { error } = await db.auth.signInWithOtp({ email, options: { emailRedirectTo: `${location.origin}/admin`, shouldCreateUser: true } });
+    const { error } = await db.auth.signInWithPassword({ email: email.trim(), password });
     setBusy(false);
-    if (error) setError(error.message.includes("rate") ? "Previše pokušaja. Sačekajte minut pa probajte ponovo." : "Slanje linka nije uspelo. Proverite adresu i pokušajte ponovo.");
-    else setSent(true);
+    if (error) setError(error.message.toLowerCase().includes("invalid") ? "Pogrešan email ili lozinka." : "Prijava nije uspela. Pokušajte ponovo za minut.");
   };
   return (
     <div className="s-center">
       <form className="a-login" onSubmit={submit} noValidate>
         <div className="b-wordmark"><span className="b-mark" aria-hidden="true" />MojApp admin</div>
-        {sent ? (
-          <><h1>Proverite email</h1><p className="b-hint">Poslali smo link za prijavu na {email}. Otvorite ga na ovom uređaju.</p>
-            <button type="button" className="b-link" onClick={() => setSent(false)}>Pošalji ponovo</button></>
-        ) : (
-          <><h1>Prijava</h1><p className="b-hint">Šaljemo vam link za prijavu. Lozinka nije potrebna.</p>
-            <label className="b-field"><span>Email</span><input id="admin-email" type="email" autoComplete="email" value={email} onChange={(e) => setEmail(e.target.value)} autoFocus /></label>
-            {error && <p className="b-error" role="alert">{error}</p>}
-            <button type="submit" className="b-btn" disabled={busy}>{busy ? "Šaljemo…" : "Pošalji link za prijavu"}</button></>
-        )}
+        <h1>Prijava</h1>
+        <label className="b-field"><span>Email</span><input id="admin-email" type="email" autoComplete="username" value={email} onChange={(e) => setEmail(e.target.value)} autoFocus /></label>
+        <label className="b-field"><span>Lozinka</span><input id="admin-password" type="password" autoComplete="current-password" value={password} onChange={(e) => setPassword(e.target.value)} /></label>
+        {error && <p className="b-error" role="alert">{error}</p>}
+        <button type="submit" className="b-btn" disabled={busy}>{busy ? "Prijavljujemo…" : "Prijavi se"}</button>
       </form>
     </div>
   );
