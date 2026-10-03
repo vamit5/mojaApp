@@ -16,7 +16,7 @@ button { cursor: pointer; }
 
 .b-root { height: 100%; display: flex; flex-direction: column; }
 .b-top { height: 60px; flex: none; display: flex; align-items: center; gap: 24px; padding: 0 24px; border-bottom: 1px solid var(--line); background: var(--panel); }
-.b-wordmark { display: flex; align-items: center; gap: 9px; font-weight: 700; font-size: 18px; letter-spacing: -.02em; }
+.b-wordmark { color: var(--ink); text-decoration: none; display: flex; align-items: center; gap: 9px; font-weight: 700; font-size: 18px; letter-spacing: -.02em; }
 .b-mark { width: 14px; height: 22px; border-radius: 4px; border: 2.5px solid var(--ink); position: relative; }
 .b-mark::after { content: ""; position: absolute; left: 50%; bottom: 2px; width: 4px; height: 2px; border-radius: 1px; background: var(--ink); transform: translateX(-50%); }
 .b-steps { display: flex; align-items: center; gap: 6px; margin: 0 auto; }
@@ -138,30 +138,52 @@ button { cursor: pointer; }
 .b-modal-actions { display: flex; justify-content: flex-end; gap: 8px; margin-top: 20px; }
 
 /* mobilni prikaz */
-.b-preview-btn, .b-mobile-preview { display: none; }
+.b-stage-open, .b-ready-sticky, .b-mobile-preview { display: none; }
 @media (max-width: 900px) {
   .b-top { padding: 0 16px; gap: 12px; height: 56px; }
   .b-top-note, .b-steps-label { display: none; }
   .b-step-dot { width: 16px; }
   .b-step-dot.is-current { width: 28px; }
   .b-main { grid-template-columns: 1fr; }
-  .b-stage { display: none; }
+  /* živi mini telefon u uglu; dodir otvara aplikaciju preko celog ekrana */
+  .b-stage { display: flex; position: fixed; right: 12px; bottom: calc(86px + env(safe-area-inset-bottom)); z-index: 12; width: 100px; height: 212px; padding: 0; background: none; }
+  .b-stage .b-custom { display: none; }
+  .b-stage .b-phone-wrap { pointer-events: none; }
+  .b-stage .b-phone { box-shadow: 0 0 0 1.5px #3A3D43, 0 14px 30px -8px rgb(20 22 26 / .5); }
+  .b-stage-open { display: flex; position: absolute; inset: 0; align-items: flex-end; justify-content: center; padding: 0 0 8px; border: 0; background: none; }
+  .b-stage-open span { display: inline-flex; align-items: center; gap: 4px; height: 24px; padding: 0 9px; border-radius: 999px; background: var(--ink); color: #fff; font-size: 11.5px; font-weight: 600; box-shadow: 0 4px 10px rgb(0 0 0 / .25); }
   .b-panel { border: 0; }
-  .b-step { padding: 26px 18px 100px; }
+  .b-step { padding: 22px 18px 250px; }
   .b-q { font-size: 26px; }
   .b-panel-foot { position: fixed; left: 0; right: 0; bottom: 0; background: var(--panel); padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); z-index: 10; }
   .b-industries { grid-template-columns: repeat(2, 1fr); }
   .b-row { flex-direction: column; gap: 0; }
-  .b-preview-btn { display: inline-flex; padding: 0 14px; }
   .b-foot-spacer { display: none; }
+  .b-plan { position: static; }
   .b-panel-foot { gap: 8px; }
   .b-panel-foot > .b-btn:last-child { flex: 1; }
+  .b-panel-foot > .b-btn.is-ghost { padding: 0 16px; }
   .b-mobile-preview { display: block; position: fixed; inset: 0; z-index: 40; background: #000; padding-top: env(safe-area-inset-top); }
   .b-mobile-close { position: absolute; top: calc(10px + env(safe-area-inset-top)); left: 50%; transform: translateX(-50%); z-index: 300; display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 14px; border-radius: 999px; border: 0; background: rgb(20 22 26 / .78); color: #fff; font-size: 13px; font-weight: 550; backdrop-filter: blur(10px); }
   .b-mobile-preview .mja-top { padding-top: 52px; }
-  .b-ready-grid { grid-template-columns: 1fr; padding: 70px 18px 32px; gap: 24px; }
-  .b-ready-phone { height: 640px; min-height: 0; order: -1; }
-  .b-facts { grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .b-ready-grid { grid-template-columns: minmax(0, 1fr); padding: 68px 18px 110px; gap: 20px; }
+  .b-ready-title { font-size: 36px; margin-bottom: 10px; }
+  .b-ready-lead { font-size: 16px; margin-bottom: 18px; }
+  .b-ready-phone { height: 600px; min-height: 0; }
+  .b-ready-sticky { display: block; position: fixed; left: 0; right: 0; bottom: 0; z-index: 55; padding: 12px 16px calc(12px + env(safe-area-inset-bottom)); background: color-mix(in srgb, var(--paper) 92%, transparent); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-top: 1px solid var(--line); }
+  .b-ready-sticky .b-btn { width: 100%; }
+  /* redosled na telefonu: naslov → aplikacija → detalji; glavno dugme je u traci na dnu */
+  .b-ready-text { display: contents; }
+  .b-ready-text > * { order: 1; }
+  .b-ready-phone { order: 2; }
+  .b-ready-actions, .b-facts, .b-footnote { order: 3; }
+  .b-ready-actions { margin: 0; }
+  .b-ready-actions .b-btn:first-child { display: none; }
+  .b-ready-lead { margin-bottom: 0; }
+  .b-facts { grid-template-columns: 1fr 1fr; margin: 0; }
+  .b-facts div:nth-child(2) { grid-column: 1 / -1; order: 3; }
+  .b-ready-close { top: 14px; left: 16px; }
+
   .b-ready-actions .b-btn { flex: 1 1 100%; }
 }
 @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }

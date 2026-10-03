@@ -49,6 +49,13 @@ function usePlans() {
 export function Home() {
   const [heroIdx, setHeroIdx] = useState(0);
   const [paused, setPaused] = useState(false);
+  const [allModules, setAllModules] = useState(false);
+  const [sticky, setSticky] = useState(false);
+  useEffect(() => {
+    const on = () => setSticky(window.scrollY > 700 && window.innerHeight + window.scrollY < document.body.scrollHeight - 420);
+    window.addEventListener("scroll", on, { passive: true });
+    return () => window.removeEventListener("scroll", on);
+  }, []);
   const { plans, maintenance } = usePlans();
   const heroConfig = useMemo(() => createConfig(HERO_APPS[heroIdx].key, HERO_APPS[heroIdx].name), [heroIdx]);
 
@@ -81,11 +88,6 @@ export function Home() {
             <Link to="/demo" className="b-btn is-big" onClick={cta("hero")}>Napravite besplatan demo</Link>
             <a href="#kako-radi" className="b-btn is-ghost is-big">Pogledajte kako radi</a>
           </div>
-          <dl className="h-facts">
-            <div><dt>Demo</dt><dd>oko 3 minuta</dd></div>
-            <div><dt>Izrada START aplikacije</dt><dd>24–48h*</dd></div>
-            <div><dt>Cena</dt><dd>od {eur(PLANS.start.once)}</dd></div>
-          </dl>
         </div>
 
         <div className="h-hero-phone" onPointerDown={() => setPaused(true)}>
@@ -105,6 +107,12 @@ export function Home() {
             </motion.p>
           </AnimatePresence>
         </div>
+
+        <dl className="h-facts">
+          <div><dt>Demo</dt><dd>oko 3 minuta</dd></div>
+          <div><dt>Izrada START aplikacije</dt><dd>24–48h*</dd></div>
+          <div><dt>Cena</dt><dd>od {eur(PLANS.start.once)}</dd></div>
+        </dl>
       </section>
 
       <section className="h-section" aria-labelledby="biznis">
@@ -135,7 +143,7 @@ export function Home() {
       <section className="h-section" aria-labelledby="funkcije">
         <h2 id="funkcije">Šta aplikacija može</h2>
         <p className="h-lead">Birate funkcije koje vam trebaju. Uz svaku piše u kom paketu je.</p>
-        <ul className="h-modules">
+        <ul className={`h-modules ${allModules ? "is-open" : ""}`}>
           {MODULE_KEYS.map((m) => (
             <li key={m}>
               <div><strong>{MODULES[m].name}</strong><span>{MODULES[m].description}</span></div>
@@ -143,6 +151,7 @@ export function Home() {
             </li>
           ))}
         </ul>
+        {!allModules && <button type="button" className="b-btn is-ghost h-more" onClick={() => setAllModules(true)}>Prikaži sve funkcije ({MODULE_KEYS.length})</button>}
       </section>
 
       <section className="h-section h-transparent" aria-labelledby="jasno">
@@ -204,6 +213,14 @@ export function Home() {
         <p>Napravite demo za par minuta i odlučite kad je vidite.</p>
         <Link to="/demo" className="b-btn is-big is-light" onClick={cta("final")}>Napravite besplatan demo</Link>
       </section>
+
+      <AnimatePresence>
+        {sticky && (
+          <motion.div className="h-sticky" initial={{ y: 90 }} animate={{ y: 0 }} exit={{ y: 90 }} transition={{ type: "spring", stiffness: 420, damping: 38 }}>
+            <Link to="/demo" className="b-btn is-big" onClick={cta("sticky")}>Napravite besplatan demo</Link>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <footer className="h-footer">
         <span>© {new Date().getFullYear()} MojApp</span>

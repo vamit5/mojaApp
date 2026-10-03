@@ -89,7 +89,6 @@ export function Builder() {
 
           <div className="b-panel-foot">
             {step > 0 ? <button type="button" className="b-btn is-ghost" onClick={() => go(step - 1)}>Nazad</button> : <span className="b-foot-spacer" />}
-            <button type="button" className="b-btn is-ghost b-preview-btn" onClick={() => setMobilePreview(true)} aria-label="Pogledaj aplikaciju"><Icon name="phone" size={18} /> Pregled</button>
             {step < STEPS.length - 1
               ? <button type="button" className="b-btn" onClick={() => { if (step === 0 && !started) chooseIndustry(config.industry); go(step + 1); }}>{step === 0 ? "Napravite moju aplikaciju" : "Dalje"}</button>
               : <button type="button" className="b-btn" onClick={finish}>Završi aplikaciju</button>}
@@ -99,6 +98,9 @@ export function Builder() {
         <section className="b-stage" aria-label="Pregled aplikacije uživo">
           <Phone config={config} introKey={introKey} />
           <Customizer config={config} update={update} onColor={() => { colorsTouched.current = true; }} />
+          <button type="button" className="b-stage-open" onClick={() => setMobilePreview(true)} aria-label="Otvori aplikaciju preko celog ekrana">
+            <span><Icon name="phone" size={13} /> Otvori</span>
+          </button>
         </section>
       </main>
 
@@ -402,6 +404,12 @@ function Ready({ config, plan, introKey, onClose }: { config: AppConfig; plan: "
           <Phone config={config} introKey={introKey} />
         </motion.div>
       </div>
+
+      {!done && (
+        <div className="b-ready-sticky">
+          <button type="button" className="b-btn is-big" onClick={() => { setForm("want_app"); track("want_app_click", { plan, location: "sticky" }); }}>Želim ovu aplikaciju</button>
+        </div>
+      )}
 
       <AnimatePresence>
         {form && <LeadForm intent={form} config={config} onClose={() => setForm(null)} onDone={(name, slug) => { setDone({ intent: form, name, slug }); setForm(null); }} />}
