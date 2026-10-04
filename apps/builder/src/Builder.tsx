@@ -3,6 +3,7 @@ import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
 import { AppEngine } from "@mojapp/app-engine";
 import { createConfig, estimate, INDUSTRIES, industryByKey, MODULE_KEYS, MODULES, PLANS, type AppConfig, type ModuleKey } from "@mojapp/core";
 import { compressImage, dominantColor, Icon } from "@mojapp/ui";
+import { useOffer } from "./lib/offer";
 import { track } from "./lib/analytics";
 import { Phone } from "./components/Phone";
 import { Link } from "./router";
@@ -268,6 +269,7 @@ function StepAbout({ config, update }: StepProps) {
 function StepFeatures({ config, update }: StepProps) {
   const ind = industryByKey(config.industry);
   const est = estimate(config.modules);
+  const offer = useOffer();
   const order = [...ind.modules, ...MODULE_KEYS.filter((m) => !ind.modules.includes(m))];
   const toggle = (m: ModuleKey) => update((c) => {
     c.modules = c.modules.includes(m) ? c.modules.filter((x) => x !== m) : [...c.modules, m];
@@ -293,7 +295,7 @@ function StepFeatures({ config, update }: StepProps) {
       </div>
       <motion.div className="b-plan" layout>
         <span>Vaš izbor: <strong>{est.plan === "start" ? "START" : "BUSINESS"}</strong></span>
-        <span>{eur(est.priceOnce)} + {eur(est.priceMonthly)} mesečno</span>
+        <span>{offer.active && <s className="b-old">{eur(est.priceOnce ?? 0)}</s>} {eur(offer.price(est.priceOnce ?? 0))} + {eur(est.priceMonthly)} mesečno</span>
       </motion.div>
       {est.plan === "business" && <p className="b-small">{est.reasons.join(". ")}. Za START isključite BUSINESS funkcije.</p>}
     </>
@@ -359,6 +361,7 @@ function Ready({ config, plan, introKey, onClose }: { config: AppConfig; plan: "
   const [done, setDone] = useState<{ intent: LeadInput["intent"]; name: string; slug?: string } | null>(null);
   const [copied, setCopied] = useState(false);
   const p = plan === "start" ? PLANS.start : PLANS.business;
+  const offer = useOffer();
 
   return (
     <motion.div className="b-ready" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}>
@@ -393,7 +396,7 @@ function Ready({ config, plan, introKey, onClose }: { config: AppConfig; plan: "
               </div>
               <dl className="b-facts">
                 <div><dt>Paket</dt><dd>{plan === "start" ? "START" : "BUSINESS"}</dd></div>
-                <div><dt>Cena</dt><dd>{eur(p.once)} + {eur(p.monthly)} mesečno</dd></div>
+                <div><dt>Cena{offer.active ? ` (−${offer.percent}%)` : ""}</dt><dd>{offer.active && <s className="b-old">{eur(p.once)}</s>} {eur(offer.price(p.once))} + {eur(p.monthly)} mesečno</dd></div>
                 <div><dt>Izrada</dt><dd>{plan === "start" ? "24–48h*" : "5–7 radnih dana*"}</dd></div>
               </dl>
               <p className="b-footnote">*Rok se odnosi na izradu aplikacije. Objavljivanje na App Store-u i Google Play-u zavisi od procesa pregleda i odobrenja tih platformi. Aplikacija se objavljuje na vaš nalog, pa Apple (99 USD godišnje) i Google (25 USD jednom) svoje naknade naplaćuju direktno vama.</p>

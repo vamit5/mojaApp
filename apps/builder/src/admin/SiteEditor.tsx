@@ -23,9 +23,54 @@ export function SiteEditor() {
   return (
     <>
       <div className="a-head"><h1>Sajt</h1><a className="b-btn is-ghost" href="/" target="_blank" rel="noreferrer">Otvori sajt</a></div>
+      <OfferEditor />
       <TeamEditor />
       <PortfolioEditor />
     </>
+  );
+}
+
+/* ───────────── Ponuda (−%) ───────────── */
+
+interface OfferValue { percent: number; label: string; ends_at: string | null }
+
+/** ISO → vrednost za <input type="datetime-local"> u lokalnom vremenu. */
+const toLocal = (iso: string | null) => { if (!iso) return ""; const d = new Date(iso); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 16); };
+
+function OfferEditor() {
+  const [o, setO] = useState<OfferValue>({ percent: 50, label: "Lansirna ponuda", ends_at: null });
+  const [loaded, setLoaded] = useState(false);
+  const [msg, setMsg] = useState("");
+  useEffect(() => {
+    db.from("site_settings").select("value").eq("key", "offer").maybeSingle().then(({ data }) => {
+      if (data?.value) setO({ percent: 50, label: "Lansirna ponuda", ends_at: null, ...(data.value as Partial<OfferValue>) });
+      setLoaded(true);
+    });
+  }, []);
+  const save = async (next: OfferValue) => {
+    setO(next); setMsg("");
+    const { error } = await db.from("site_settings").upsert({ key: "offer", value: next, updated_at: new Date().toISOString() });
+    setMsg(error ? "Čuvanje nije uspelo." : "Sačuvano. Sajt prikazuje novu ponudu.");
+  };
+  const endToday = () => { const d = new Date(); d.setHours(23, 59, 59, 0); return d.toISOString(); };
+  const active = !!o.ends_at && Date.parse(o.ends_at) > Date.now() && o.percent > 0;
+  if (!loaded) return null;
+  return (
+    <section className="a-box a-site-box">
+      <div className="a-box-head"><h3>Ponuda</h3><span className={`a-sub`}>{active ? `Aktivna: −${o.percent}% do ${new Date(o.ends_at!).toLocaleString("sr-Latn-RS")}` : "Nije aktivna, sajt prikazuje redovne cene"}</span></div>
+      <div className="a-offer-grid a-three">
+        <label className="b-field"><span>Popust (%)</span><input id="offer-pct" type="number" min={0} max={90} value={o.percent} onChange={(e) => setO({ ...o, percent: Number(e.target.value) })} /></label>
+        <label className="b-field"><span>Naziv</span><input id="offer-label" value={o.label} onChange={(e) => setO({ ...o, label: e.target.value })} /></label>
+        <label className="b-field"><span>Važi do</span><input id="offer-end" type="datetime-local" value={toLocal(o.ends_at)} onChange={(e) => setO({ ...o, ends_at: e.target.value ? new Date(e.target.value).toISOString() : null })} /></label>
+      </div>
+      <div className="a-row">
+        <button type="button" className="b-btn" onClick={() => save(o)}>Sačuvaj</button>
+        <button type="button" className="b-btn is-ghost" onClick={() => save({ ...o, ends_at: endToday() })}>Do kraja danas</button>
+        {active && <button type="button" className="b-btn is-ghost" onClick={() => save({ ...o, ends_at: null })}>Isključi ponudu</button>}
+        {msg && <span className="a-sub">{msg}</span>}
+      </div>
+      <p className="a-sub">Cene na sajtu su redovne cene iz paketa; popust se računa od njih. Kad rok prođe, sajt sam prikazuje redovne cene.</p>
+    </section>
   );
 }
 
