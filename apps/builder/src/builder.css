@@ -202,3 +202,23 @@ button { cursor: pointer; }
   input, select, textarea, .b-field input, .b-field textarea, .a-select, .a-note-form textarea, .pr-compose textarea, .b-share-row input, .a-link-row input, .a-item input { font-size: 16px !important; }
 }
 .b-old { color: var(--ink-3); font-weight: 500; margin-right: 4px; }
+
+/* ═════════ Brend u demo alatu: crna traka, narandžasti glavni potezi, tamna scena ═════════ */
+.b-root { --o: #FF4F1A; font-family: "Inter Tight", var(--font); }
+.b-top { background: #0A0A0B; border-bottom-color: #1E1F23; color: #fff; }
+.b-top .b-wordmark { color: #fff; font-weight: 800; letter-spacing: -.03em; }
+.b-top .b-wordmark em { font-style: normal; color: var(--o); }
+.b-mark { width: 16px; height: 25px; border: 0; border-radius: 5px; background: #1A1B1F url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 160'%3E%3Crect x='21' y='49' width='26' height='26' rx='8' fill='%23fff'/%3E%3Crect x='53' y='49' width='26' height='26' rx='8' fill='%23fff'/%3E%3Crect x='21' y='81' width='26' height='26' rx='8' fill='%23fff'/%3E%3Crect x='53' y='81' width='26' height='26' rx='8' fill='%23FF4F1A'/%3E%3C/svg%3E") center / 100% 100% no-repeat; box-shadow: inset 0 0 0 1.5px rgb(255 255 255 / .45); }
+.b-mark::after { display: none; }
+.b-top .b-step-dot { background: #33353B; }
+.b-top .b-step-dot.is-done { background: #8B909A; }
+.b-top .b-step-dot.is-current { background: var(--o); }
+.b-top .b-steps-label, .b-top .b-top-note { color: #A3A7AF; }
+.b-root .b-btn:not(.is-ghost) { background: var(--o); }
+.b-root .b-btn:not(.is-ghost):hover { background: #FF6230; }
+.b-ind.is-active { border-color: var(--o); box-shadow: inset 0 0 0 1px var(--o); background: rgb(255 79 26 / .05); }
+.b-ind.is-active svg { color: var(--o); }
+.b-stage { background: radial-gradient(520px 420px at 50% 42%, rgb(255 79 26 / .22), transparent 70%), #0E0F11; }
+.b-trust { display: flex; align-items: center; gap: 8px; margin-top: 12px; color: #A3A7AF; font-size: 12px; font-weight: 600; letter-spacing: .04em; text-transform: uppercase; }
+.b-trust img { height: 28px; width: auto; }
+@media (max-width: 960px) { .b-stage { background: none; } .b-trust { display: none; } }

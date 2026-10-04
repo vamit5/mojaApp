@@ -1,4 +1,4 @@
-// Edge Function: pravi Stripe Checkout za depozit (iz ponude) ili ostatak (iz portala).
+// Edge Function: pravi Stripe Checkout. Iz portala: ceo iznos kad se klijentu aplikacija svidi (ili ostatak posle depozita).
 // Secrets: STRIPE_SECRET_KEY (rk_live_… ili sk_…). SUPABASE_URL i SUPABASE_SERVICE_ROLE_KEY Supabase daje sam.
 import { createClient } from "npm:@supabase/supabase-js@2";
 
@@ -67,8 +67,9 @@ Deno.serve(async (req) => {
   let amount: number;
   if (body.project_token) {
     if (paidKinds.has("full") || paidKinds.has("balance")) return json(400, { error: "Ceo iznos je već plaćen." });
-    if (!paidKinds.has("deposit")) return json(400, { error: "Depozit još nije plaćen." });
-    kind = "balance"; amount = Math.round((total - deposit) * 100) / 100;
+    // Bez depozita: klijent plaća ceo iznos kad mu se aplikacija svidi. Sa depozitom: ostatak.
+    if (paidKinds.has("deposit")) { kind = "balance"; amount = Math.round((total - deposit) * 100) / 100; }
+    else { kind = "full"; amount = total; }
   } else {
     if (paidKinds.has("deposit") || paidKinds.has("full")) return json(400, { error: "Depozit je već plaćen." });
     kind = offer.deposit_pct >= 100 ? "full" : "deposit"; amount = offer.deposit_pct >= 100 ? total : deposit;

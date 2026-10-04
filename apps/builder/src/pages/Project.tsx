@@ -10,10 +10,10 @@ import "./share.css";
 import "./project.css";
 
 export const STAGES = [
-  ["ideja", "Ideja", "Ponuda je prihvaćena."],
+  ["ideja", "Ideja", "Narudžbina je potvrđena."],
   ["dizajn", "Dizajn", "Prilagođavamo izgled vašem brendu."],
   ["izrada", "Izrada", "Pravimo aplikaciju i povezujemo funkcije."],
-  ["testiranje", "Testiranje", "Probate aplikaciju na svom telefonu i javite nam izmene."],
+  ["testiranje", "Testiranje", "Probate aplikaciju na svom telefonu. Sviđa vam se? Platite i objavljujemo."],
   ["spremno", "Spremno", "Aplikacija je gotova i čeka objavu."],
   ["prodavnice", "App Store / Google Play", "Apple i Google pregledaju aplikaciju."],
   ["objavljeno", "Objavljeno", "Aplikacija je dostupna u prodavnicama."],
@@ -55,13 +55,14 @@ export function Project({ token }: { token: string }) {
   useEffect(() => { load(); }, [load]);
 
   if (p === null) return <div className="s-center"><div className="s-spinner" aria-label="Učitavanje" /></div>;
-  if (p === "missing") return <div className="s-center s-missing"><h1>Projekat nije pronađen.</h1><p>Proverite link koji ste dobili posle uplate.</p><Link to="/" className="b-btn">Na početnu</Link></div>;
+  if (p === "missing") return <div className="s-center s-missing"><h1>Projekat nije pronađen.</h1><p>Proverite link koji ste dobili uz narudžbinu.</p><Link to="/" className="b-btn">Na početnu</Link></div>;
 
   const idx = Math.max(0, STAGES.findIndex(([k]) => k === p.stage));
   const paidTotal = p.payments.reduce((s, x) => s + Number(x.amount), 0);
   const total = Number(p.offer?.total ?? p.agreed_price ?? 0);
   const remaining = Math.max(0, Math.round((total - paidTotal) * 100) / 100);
-  const canPayBalance = remaining > 0 && p.payments.some((x) => x.kind === "deposit") && idx >= 3;
+  const hasDeposit = p.payments.some((x) => x.kind === "deposit");
+  const canPayBalance = remaining > 0 && idx >= 3;
   const lastNote = p.stage_note ?? [...p.history].reverse().find((h) => h.stage === p.stage)?.note ?? STAGES[idx][2];
 
   const send = async () => {
@@ -128,8 +129,9 @@ export function Project({ token }: { token: string }) {
               {p.payments.length > 0 && (
                 <ul className="pr-payments">{p.payments.map((x, i) => <li key={i}><Icon name="check" size={15} /><span>{kindLabel[x.kind] ?? x.kind}</span><span>{money(Number(x.amount))}</span><span className="pr-muted">{new Date(x.paid_at).toLocaleDateString("sr-Latn-RS")}</span></li>)}</ul>
               )}
-              {canPayBalance && <button type="button" className="b-btn is-big pr-pay" onClick={payBalance} disabled={paying}><Icon name="card" size={18} />{paying ? "Otvaramo plaćanje…" : `Plati ostatak ${money(remaining)}`}</button>}
-              {remaining > 0 && !canPayBalance && <p className="pr-muted">Ostatak plaćate kada aplikacija bude spremna za testiranje.</p>}
+              {canPayBalance && <p className="pr-pay-note">Isprobajte aplikaciju. Ako vam se sviđa, platite i predajemo je na App Store i Google Play.</p>}
+              {canPayBalance && <button type="button" className="b-btn is-big pr-pay" onClick={payBalance} disabled={paying}><Icon name="card" size={18} />{paying ? "Otvaramo plaćanje…" : hasDeposit ? `Plati ostatak ${money(remaining)}` : `Sviđa mi se, plaćam ${money(remaining)}`}</button>}
+              {remaining > 0 && !canPayBalance && <p className="pr-muted">Ne plaćate ništa dok aplikacija ne bude spremna za testiranje i dok vam se ne svidi.</p>}
               {p.offer && <Link to={`/ponuda/${p.offer.token}`} className="b-link">Ponuda {p.offer.number}</Link>}
             </section>
 

@@ -68,3 +68,4 @@
   .pr-stages li::after { top: 34px; left: 13px; right: auto; width: 2px; height: calc(100% - 28px); }
   .pr-main { padding-top: 24px; }
 }
+.pr-pay-note { margin: 14px 0 0; font-weight: 600; }

@@ -113,11 +113,82 @@ function sample(base: IndustryPreset["base"]): Pick<AppConfig, "catalog" | "staf
   };
 }
 
+type Sample = ReturnType<typeof sample>;
+const it = (name: string, description: string, price?: number, duration?: number, tag?: string) => ({ id: id("i"), name, description, price, duration, tag, placeholder: P });
+
+/** Sadržaj po delatnosti tamo gde osnovni preset ne odgovara (npr. auto servis ne nudi farbanje kose). */
+const OVERRIDES: Record<string, (s: Sample) => Partial<Sample>> = {
+  beauty: () => ({
+    heroTitle: "Tvoj tretman, u par dodira",
+    about: "Primer opisa: kozmetički studio sa tretmanima lica, tela i noktiju.",
+    catalog: [
+      { id: id("c"), name: "Lice", items: [it("Higijenski tretman lica", "Čišćenje, piling, maska", 3500, 60, "Popularno"), it("Hidratantni tretman", "Za suvu i osetljivu kožu", 4200, 60)] },
+      { id: id("c"), name: "Telo i nokti", items: [it("Relaks masaža", "Masaža celog tela", 3800, 60), it("Gel lak", "Manikir sa gel lakom", 2200, 60)] },
+    ],
+    staff: [{ id: id("s"), name: "Teodora", role: "Kozmetičar", placeholder: P }, { id: id("s"), name: "Maja", role: "Maser", placeholder: P }],
+  }),
+  auto: () => ({
+    heroTitle: "Servis bez čekanja u redu",
+    heroSubtitle: "Zakaži termin, prati status vozila i dobij obaveštenje kad je gotovo.",
+    about: "Primer opisa: auto servis za sve marke, sa originalnim delovima i garancijom na rad.",
+    hours: "Pon–Pet 08:00–18:00 · Sub 08:00–14:00",
+    catalog: [
+      { id: id("c"), name: "Servis", items: [it("Mali servis", "Ulje, filteri, provera tečnosti", 6500, 60, "Popularno"), it("Veliki servis", "Zupčasti kaiš, pumpa, filteri", 24000, 240), it("Dijagnostika", "Kompjuterska provera grešaka", 2500, 30)] },
+      { id: id("c"), name: "Gume i klima", items: [it("Zamena guma", "Skidanje, montaža, balansiranje", 3000, 45), it("Servis klime", "Punjenje i dezinfekcija", 4500, 45)] },
+    ],
+    staff: [{ id: id("s"), name: "Dragan", role: "Majstor", placeholder: P }, { id: id("s"), name: "Nikola", role: "Dijagnostika", placeholder: P }],
+    promotions: [{ id: id("p"), title: "Jesenja provera", text: "Besplatna provera kočnica uz svaki servis", placeholder: P }],
+    loyalty: { pointsName: "servisa", target: 5, reward: "Pranje vozila gratis" },
+  }),
+  nekretnine: () => ({
+    heroTitle: "Pronađi dom koji ti odgovara",
+    heroSubtitle: "Pregledaj ponudu i zakaži razgledanje za par sekundi.",
+    about: "Primer opisa: agencija za prodaju i izdavanje stanova i kuća.",
+    catalog: [
+      { id: id("c"), name: "Ponuda", items: [it("Trosoban stan, Vračar", "78 m², 3. sprat, terasa · 245.000 €", undefined, undefined, "Novo"), it("Dvosoban stan, Novi Beograd", "56 m², garaža · 168.000 €"), it("Kuća sa dvorištem, Zemun", "140 m², plac 4 ara · 310.000 €")] },
+    ],
+    staff: [], promotions: [], loyalty: { pointsName: "poena", target: 10, reward: "Besplatna procena nekretnine" },
+  }),
+  shop: () => ({
+    heroTitle: "Nova kolekcija je stigla",
+    heroSubtitle: "Poruči za par sekundi, plati pouzećem ili karticom.",
+    about: "Primer opisa: online prodavnica odeće i aksesoara.",
+    catalog: [
+      { id: id("c"), name: "Proizvodi", items: [it("Pamučna majica", "100% organski pamuk", 2490, undefined, "Novo"), it("Lanena košulja", "Prirodni lan, slim fit", 5990), it("Džemper od merino vune", "Topao i lagan", 7990, undefined, "Popularno")] },
+    ],
+    staff: [],
+    promotions: [{ id: id("p"), title: "Dobrodošlica", text: "−10% na prvu porudžbinu kroz aplikaciju", code: "PRVA10", placeholder: P }],
+  }),
+  edukacija: () => ({
+    heroTitle: "Uči kad ti odgovara",
+    heroSubtitle: "Raspored časova, upis i tvoj napredak na jednom mestu.",
+    about: "Primer opisa: centar za strane jezike i pripremu ispita.",
+    catalog: [{ id: id("c"), name: "Kursevi", items: [it("Engleski B1", "Dva puta nedeljno, mala grupa", undefined, 90, "Popularno"), it("Nemački A1", "Za početnike", undefined, 90), it("Priprema za ispit", "Individualni časovi", undefined, 60)] }],
+    staff: [{ id: id("s"), name: "Jelena", role: "Profesor engleskog", placeholder: P }, { id: id("s"), name: "Stefan", role: "Profesor nemačkog", placeholder: P }],
+    promotions: [{ id: id("p"), title: "Probni čas", text: "Prvi čas je besplatan", placeholder: P }],
+    loyalty: { pointsName: "časova", target: 10, reward: "Čas gratis" },
+  }),
+  klub: () => ({
+    heroTitle: "Budi deo zajednice",
+    heroSubtitle: "Događaji, članarina i novosti na jednom mestu.",
+    about: "Primer opisa: klub sa redovnim druženjima, radionicama i događajima.",
+    catalog: [{ id: id("c"), name: "Događaji", items: [it("Večernje druženje", "Svakog petka od 19h", undefined, 120, "Popularno"), it("Radionica", "Mala grupa, uz prijavu", undefined, 90), it("Izlet vikendom", "Polazak u 9h", undefined, 480)] }],
+  }),
+  drugo: () => ({
+    heroTitle: "Tvoje usluge, uvek pri ruci",
+    about: "Primer opisa: lokalni biznis koji brine o svojim klijentima.",
+    catalog: [{ id: id("c"), name: "Ponuda", items: [it("Usluga 1", "Kratak opis usluge", 2500, 60, "Popularno"), it("Usluga 2", "Kratak opis usluge", 3500, 60), it("Konsultacija", "Razgovor i predlog rešenja", 1500, 30)] }],
+    staff: [], 
+  }),
+};
+
 /** Polazni config za izabranu industriju. */
 export function createConfig(industryKey: string, name = ""): AppConfig {
   const ind = industryByKey(industryKey);
-  const s = sample(ind.base);
-  const catalog = ind.key === ind.base ? s.catalog : s.catalog.map((c, i) => (i === 0 ? { ...c, name: ind.catalogLabel } : c));
+  const base = sample(ind.base);
+  const over = OVERRIDES[ind.key]?.(base);
+  const s = { ...base, ...over };
+  const catalog = over?.catalog || ind.key === ind.base ? s.catalog : s.catalog.map((c, i) => (i === 0 ? { ...c, name: ind.catalogLabel } : c));
   return {
     version: 1,
     industry: ind.key,

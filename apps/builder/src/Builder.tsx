@@ -63,7 +63,7 @@ export function Builder() {
   return (
     <div className="b-root">
       <header className="b-top">
-        <Link to="/" className="b-wordmark"><span className="b-mark" aria-hidden="true" />MojApp</Link>
+        <Link to="/" className="b-wordmark"><span className="b-mark" aria-hidden="true" /><span>Moj<em>App</em></span></Link>
         <div className="b-steps" aria-label={`Korak ${step + 1} od ${STEPS.length}`}>
           {STEPS.map((s, i) => (
             <button type="button" key={s.key} className={`b-step-dot ${i === step ? "is-current" : ""} ${i < step ? "is-done" : ""}`} onClick={() => go(i)} aria-label={`Korak ${i + 1}: ${s.title}`} />
@@ -99,6 +99,7 @@ export function Builder() {
         <section className="b-stage" aria-label="Pregled aplikacije uživo">
           <Phone config={config} introKey={introKey} />
           <Customizer config={config} update={update} onColor={() => { colorsTouched.current = true; }} />
+          <div className="b-trust"><span>Izrađujemo za</span><img src="/badges/app-store.svg" alt="App Store" /><img src="/badges/google-play.png" alt="Google Play" /></div>
           <button type="button" className="b-stage-open" onClick={() => setMobilePreview(true)} aria-label="Otvori aplikaciju preko celog ekrana">
             <span><Icon name="phone" size={13} /> Otvori</span>
           </button>

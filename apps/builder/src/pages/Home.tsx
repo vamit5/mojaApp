@@ -20,7 +20,8 @@ const HERO_APPS = [
 
 /** Dok fotografija nije postavljena u adminu, koristi se ova. */
 const FALLBACK_PHOTO = "/team/borislav.jpg";
-const FALLBACK_TEAM: Team = { name: "Borislav Kukić", role: "osnivač MojApp-a", city: "Beograd", photo: FALLBACK_PHOTO };
+const SUPPORT_EMAIL = "moj.app.support@gmail.com";
+const FALLBACK_TEAM: Team = { name: "Borislav Kukić", role: "osnivač", city: "Beograd", photo: FALLBACK_PHOTO, email: SUPPORT_EMAIL };
 
 interface Plan { key: string; name: string; once: number | null; monthly: number | null; label?: string; time?: string; features: string[] }
 
@@ -56,11 +57,11 @@ export function Home() {
   const plans = usePlans();
   const offer = useOffer();
   const site = useSiteContent();
-  const team: Team = site.team ? { ...site.team, photo: site.team.photo || FALLBACK_PHOTO } : FALLBACK_TEAM;
+  const team: Team = site.team ? { ...site.team, photo: site.team.photo || FALLBACK_PHOTO, email: site.team.email || SUPPORT_EMAIL } : FALLBACK_TEAM;
   const portfolio = site.portfolio;
   const wa = waLink(team.whatsapp);
-  const first = team.name.split(" ")[0];
   const startOnce = plans.find((p) => p.key === "start")?.once ?? PLANS.start.once;
+  const startMonthly = plans.find((p) => p.key === "start")?.monthly ?? PLANS.start.monthly;
   const heroConfig = useMemo(() => createConfig(HERO_APPS[heroIdx].key, HERO_APPS[heroIdx].name), [heroIdx]);
 
   useEffect(() => {
@@ -93,22 +94,38 @@ export function Home() {
           {portfolio.length > 0 && <a href="#projekti">Radovi</a>}
           <a href="#kako-radi">Kako radi</a>
           <a href="#cene">Cene</a>
-          <a href="#o-meni">Ko sam ja</a>
+          <a href="#o-meni">O nama</a>
         </nav>
         <Link to="/demo" className="b-btn h-nav-cta" onClick={cta("nav")}>Napravi demo</Link>
       </header>
 
       <section className="h-hero">
         <div className="h-hero-text">
-          <h1>Tvoja aplikacija za <span className="h-o">24–48h.</span>{offer.active ? <><br />Po pola cene.</> : null}</h1>
-          <p className="h-hero-sub">Prvo je dobiješ i isprobaš. <strong>Plaćaš tek kad ti se svidi.</strong></p>
+          <div className="h-stores" aria-label="Spremna za App Store i Google Play">
+            <span>Spremna za objavu na</span>
+            <img src="/badges/app-store.svg" alt="App Store" height={40} />
+            <img src="/badges/google-play.png" alt="Google Play" height={40} />
+          </div>
+          <h1>Tvoja aplikacija za <span className="h-o">24–48h.</span><br />Plaćaš tek kad ti se svidi.</h1>
+          <p className="h-hero-sub">Pogledaj besplatno kako izgleda. Naruči izradu <strong>bez plaćanja</strong>. Kad je isprobaš i svidi ti se, platiš i objavljujemo je.</p>
+          <div className="h-price">
+            <div className="h-price-main">
+              <span className="h-price-label">START paket{offer.active ? ` · −${offer.percent}%` : ""}</span>
+              <span className="h-price-now">{eur(offer.price(startOnce))}</span>
+              {offer.active && <s className="h-price-was">{eur(startOnce)}</s>}
+            </div>
+            <div className="h-price-side">
+              <span>jednokratno, + {eur(startMonthly)}/mes.</span>
+              {offer.active ? <span className="h-price-timer">popust ističe za <b>{timer}</b></span> : <span>gotova za 24–48h</span>}
+            </div>
+          </div>
           <div className="h-hero-actions">
-            <Link to="/demo" className="b-btn is-big h-btn-o" onClick={cta("hero")}>Napravi svoj demo besplatno <Icon name="chevronRight" size={18} /></Link>
-            {wa && <a href={wa} target="_blank" rel="noreferrer" className="b-btn is-big is-ghost" onClick={cta("hero_wa")}>Piši mi na WhatsApp</a>}
+            <Link to="/demo" className="b-btn is-big h-btn-o" onClick={cta("hero")}>Pogledaj svoju aplikaciju besplatno <Icon name="chevronRight" size={18} /></Link>
+            {wa && <a href={wa} target="_blank" rel="noreferrer" className="b-btn is-big is-ghost" onClick={cta("hero_wa")}>Piši nam na WhatsApp</a>}
           </div>
           <a href="#o-meni" className="h-who">
             <Avatar team={team} size={52} />
-            <span><strong>Ja sam {first}.</strong><span>Lično pravim tvoju aplikaciju{team.city ? ` · ${team.city}` : ""}</span></span>
+            <span><strong>{team.name}, osnivač</strong><span>Iza svake aplikacije stoji naš tim{team.city ? ` · ${team.city}` : ""}</span></span>
           </a>
         </div>
 
@@ -133,7 +150,7 @@ export function Home() {
           <span>{offer.active ? <>Važi još <span className="h-tnum">{timer}</span></> : "START paket, jednokratno"}</span>
         </div>
         <div className="h-pillar"><b>24–48h</b><span>od narudžbine do gotove aplikacije*</span></div>
-        <div className="h-pillar"><b>0 €</b><span>dok ne vidiš i ne isprobaš svoju aplikaciju</span></div>
+        <div className="h-pillar"><b>0 €</b><span>unapred. Plaćaš tek kad ti se gotova aplikacija svidi</span></div>
       </section>
 
       <Projects items={portfolio} />
@@ -143,7 +160,7 @@ export function Home() {
         <div className="h-vs">
           <div className="h-vs-row h-vs-head"><span /><span>Klasična agencija</span><span>MojApp</span></div>
           <div className="h-vs-row"><span>Izrada</span><span>nedeljama, često mesecima</span><span><b>24–48h</b></span></div>
-          <div className="h-vs-row"><span>Pre plaćanja vidiš</span><span>prezentaciju i ponudu</span><span><b>svoju aplikaciju, uživo</b></span></div>
+          <div className="h-vs-row"><span>Pre plaćanja vidiš</span><span>prezentaciju i ponudu</span><span><b>svoju gotovu aplikaciju</b></span></div>
           <div className="h-vs-row"><span>Cena</span><span>na upit</span><span><b>{offer.active ? `−${offer.percent}%, jasna odmah` : "jasna odmah"}</b></span></div>
         </div>
       </section>
@@ -160,7 +177,7 @@ export function Home() {
 
       <section className="h-section" id="cene" aria-labelledby="cene-h">
         <h2 id="cene-h">Cene{offer.active && <span className="h-price-flag">−{offer.percent}% još {timer}</span>}</h2>
-        <p className="h-lead">Jednokratna izrada + mali mesečni iznos za hosting, nove verzije iOS-a i Androida i podršku. Plaćaš tek kad ti se demo svidi.</p>
+        <p className="h-lead">Jednokratna izrada + mali mesečni iznos za hosting, nove verzije iOS-a i Androida i podršku. Izradu naručuješ bez plaćanja, plaćaš tek kad ti se gotova aplikacija svidi.</p>
         <div className="h-plans">
           {plans.map((p) => {
             const regular = p.once ?? labelNumber(p.label);
@@ -194,10 +211,10 @@ export function Home() {
       </section>
 
       <section className="h-final">
-        <h2>Napravi svoj demo. <span className="h-o">Sada.</span></h2>
-        <p>Par sekundi, besplatno, bez obaveze.{offer.active ? ` Popust od ${offer.percent}% ističe za ${timer}.` : ""}</p>
-        <Link to="/demo" className="b-btn is-big h-btn-o" onClick={cta("final")}>Napravi svoj demo besplatno</Link>
-        {wa && <a className="h-final-wa" href={wa} target="_blank" rel="noreferrer">ili mi piši na WhatsApp</a>}
+        <h2>Pogledaj svoju aplikaciju. <span className="h-o">Sada.</span></h2>
+        <p>Besplatno i bez obaveze. Izradu naručuješ bez plaćanja.{offer.active ? ` Popust od ${offer.percent}% ističe za ${timer}.` : ""}</p>
+        <Link to="/demo" className="b-btn is-big h-btn-o" onClick={cta("final")}>Pogledaj svoju aplikaciju besplatno</Link>
+        {wa && <a className="h-final-wa" href={wa} target="_blank" rel="noreferrer">ili nam piši na WhatsApp</a>}
       </section>
 
       <AnimatePresence>

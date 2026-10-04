@@ -132,7 +132,7 @@ function TeamEditor() {
           <div className="a-offer-grid a-three">
             <label className="b-field"><span>WhatsApp broj</span><input id="team-wa" value={t.whatsapp ?? ""} onChange={(e) => set("whatsapp", e.target.value)} placeholder="+381 6x xxx xxxx" /></label>
             <label className="b-field"><span>Instagram</span><input id="team-ig" value={t.instagram ?? ""} onChange={(e) => set("instagram", e.target.value)} placeholder="@mojapp" /></label>
-            <label className="b-field"><span>Email</span><input id="team-email" type="email" value={t.email ?? ""} onChange={(e) => set("email", e.target.value)} /></label>
+            <label className="b-field"><span>Email</span><input id="team-email" type="email" placeholder="moj.app.support@gmail.com" value={t.email ?? ""} onChange={(e) => set("email", e.target.value)} /></label>
           </div>
           <div className="a-row"><button type="button" className="b-btn" onClick={save} disabled={saving || uploading}>{saving ? "Čuvamo…" : "Sačuvaj"}</button>{msg && <span className="a-sub">{msg}</span>}</div>
         </div>

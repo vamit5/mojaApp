@@ -25,6 +25,11 @@ export function ContactButtons({ team }: { team: Team }) {
   );
 }
 
+const TEAM_TEXT = [
+  "MojApp je tim koji pravi mobilne aplikacije za male i srednje biznise. Osnovao ga je Borislav Kukić, koji je za svoj biznis napravio VAMIT-5 aplikaciju koju članovi koriste svakog dana.",
+  "Ne krećemo od nule. Aplikaciju sastavljamo od proverenih modula i prilagođavamo tvom biznisu, a dizajn, testiranje i objavu na App Store i Google Play radi i proverava naš tim. Zato smo brzi, a ti plaćaš tek kad ti se aplikacija svidi.",
+];
+
 export function About({ team }: { team: Team }) {
   const paragraphs = (team.bio ?? "").split(/\n\s*\n/).filter(Boolean);
   return (
@@ -33,9 +38,9 @@ export function About({ team }: { team: Team }) {
         {team.photo ? <img src={team.photo} alt={team.name} loading="lazy" /> : <div className="h-about-ph"><span>{initials(team.name)}</span></div>}
       </div>
       <div className="h-about-text">
-        <h2 id="o-meni-h">Iza MojApp-a stojim ja.</h2>
+        <h2 id="o-meni-h">Ko stoji iza MojApp-a</h2>
         <p className="h-about-name"><strong>{team.name}</strong>{team.role ? `, ${team.role}` : ""}{team.city ? ` · ${team.city}` : ""}</p>
-        {paragraphs.map((p, i) => <p key={i} className="h-about-p">{p}</p>)}
+        {(paragraphs.length ? paragraphs : TEAM_TEXT).map((p, i) => <p key={i} className="h-about-p">{p}</p>)}
         {!!team.highlights?.length && (
           <ul className="h-about-list">{team.highlights.map((h) => <li key={h}><Icon name="check" size={16} />{h}</li>)}</ul>
         )}
@@ -61,8 +66,8 @@ export function Projects({ items }: { items: PortfolioItem[] }) {
   if (!items.length) return null;
   return (
     <section className="h-section" id="projekti" aria-labelledby="projekti-h">
-      <h2 id="projekti-h">Aplikacije koje sam napravio</h2>
-      <p className="h-lead">Prave aplikacije koje ljudi koriste. Kliknite na projekat za detalje.</p>
+      <h2 id="projekti-h">Aplikacije koje smo napravili</h2>
+      <p className="h-lead">Prave aplikacije koje ljudi svakog dana koriste. Klikni na projekat za detalje.</p>
       <div className="h-projects">
         {items.map((p) => (
           <button type="button" key={p.id} className="h-project" onClick={() => setOpen(p)}>

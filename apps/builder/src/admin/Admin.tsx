@@ -3,6 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { AppConfigSchema, estimate, industryByKey, MODULES, type AppConfig, type ModuleKey } from "@mojapp/core";
 import { Icon } from "@mojapp/ui";
+import { useOffer } from "../lib/offer";
 import { supabase } from "../lib/supabase";
 import { Phone } from "../components/Phone";
 import { Link } from "../router";
@@ -398,19 +399,22 @@ function defaultOffer(modules: ModuleKey[]) {
     { name: "Priprema za App Store i Google Play", description: "Opis, slike ekrana, podaci o privatnosti i predaja na pregled" },
   ];
   const phases: OfferPhase[] = [
-    { name: "Dizajn i izrada", duration: plan === "start" ? "24–48h od uplate depozita i materijala" : plan === "business" ? "5–7 radnih dana" : "po dogovoru" },
+    { name: "Dizajn i izrada", duration: plan === "start" ? "24–48h od narudžbine i materijala" : plan === "business" ? "5–7 radnih dana" : "po dogovoru" },
     { name: "Testiranje sa vama", duration: "1–2 dana" },
     { name: "Predaja na App Store i Google Play", duration: "isti dan posle vaše potvrde" },
     { name: "Pregled Apple-a i Google-a", duration: "određuju platforme, obično od jednog do nekoliko dana" },
   ];
   const valid = new Date(); valid.setDate(valid.getDate() + 14);
-  return { plan, items, phases, total: est.priceOnce ?? 2900, monthly: est.priceMonthly ?? 39, deposit: 50, validUntil: valid.toISOString().slice(0, 10) };
+  return { plan, items, phases, total: est.priceOnce ?? 2900, monthly: est.priceMonthly ?? 39, deposit: 0, validUntil: valid.toISOString().slice(0, 10) };
 }
 
 function OfferEditor({ lead, modules, onClose, onSaved }: { lead: Lead; modules: ModuleKey[]; onClose: () => void; onSaved: (status: "nacrt" | "poslata") => void }) {
   const init = useMemo(() => defaultOffer(modules), [modules]);
   const [items, setItems] = useState(init.items);
+  const offerNow = useOffer();
   const [total, setTotal] = useState(String(init.total));
+  // Aktivna ponuda (−%) se primenjuje na predlog cene čim se učita.
+  useEffect(() => { if (offerNow.active) setTotal(String(offerNow.price(init.total))); }, [offerNow.active]); // eslint-disable-line react-hooks/exhaustive-deps
   const [monthly, setMonthly] = useState(String(init.monthly));
   const [deposit, setDeposit] = useState(String(init.deposit));
   const [validUntil, setValidUntil] = useState(init.validUntil);

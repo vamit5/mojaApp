@@ -306,7 +306,7 @@
   .h-steps { grid-template-columns: minmax(0, 1fr); gap: 22px; }
 }
 @media (max-width: 600px) {
-  .h-hero-text h1 { font-size: 46px; }
+  .h-hero-text h1 { font-size: 40px; }
   .h-hero-sub { font-size: 19px; margin-bottom: 22px; }
   .h-pillars { padding: 0 16px 40px; gap: 10px; }
   .h-pillar { padding: 22px 20px; flex-direction: row; align-items: center; gap: 16px; }
@@ -321,3 +321,23 @@
 .h-about-photo { display: flex; justify-content: center; }
 .h-about-photo img { width: min(100%, 340px); aspect-ratio: 1 / 1; border-radius: 50%; box-shadow: 0 0 0 4px var(--o), 0 30px 80px -30px rgb(255 79 26 / .55); }
 @media (max-width: 960px) { .h-about-photo { justify-content: flex-start; } .h-about-photo img { width: 200px; } }
+
+/* App Store / Google Play i cena u heroju */
+.h-stores { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 22px; }
+.h-stores span { font-size: 13px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--ink-2); margin-right: 4px; }
+.h-stores img { height: 40px; width: auto; display: block; }
+.h-price { display: flex; align-items: stretch; gap: 0; margin: 0 0 26px; border-radius: 20px; overflow: hidden; box-shadow: inset 0 0 0 1.5px rgb(255 79 26 / .6); background: rgb(255 79 26 / .08); max-width: 520px; }
+.h-price-main { display: flex; flex-direction: column; padding: 16px 22px; background: var(--o); color: #fff; min-width: 180px; }
+.h-price-label { font-size: 12.5px; font-weight: 700; letter-spacing: .06em; text-transform: uppercase; opacity: .92; }
+.h-price-now { font-size: 46px; font-weight: 800; letter-spacing: -.04em; line-height: 1.05; font-variant-numeric: tabular-nums; }
+.h-price-was { font-size: 16px; opacity: .8; font-variant-numeric: tabular-nums; }
+.h-price-side { display: flex; flex-direction: column; justify-content: center; gap: 6px; padding: 14px 20px; font-size: 15px; color: var(--ink-2); }
+.h-price-timer b { color: #fff; font-variant-numeric: tabular-nums; background: rgb(255 79 26 / .25); padding: 2px 8px; border-radius: 6px; }
+.h-about-photo img { object-position: center 20%; }
+@media (max-width: 600px) {
+  .h-stores img { height: 34px; }
+  .h-stores span { flex-basis: 100%; }
+  .h-price-main { min-width: 0; padding: 14px 16px; }
+  .h-price-now { font-size: 38px; }
+  .h-price-side { padding: 12px 14px; font-size: 14px; }
+}

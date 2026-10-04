@@ -6,11 +6,23 @@ import { useEngine } from "./state";
 
 const hash = (s: string) => { let h = 0; for (const c of s) h = (h * 31 + c.charCodeAt(0)) | 0; return Math.abs(h); };
 
-/** Fotografija klijenta ili jasno označen primer (ravna površina u boji brenda + ikonica industrije). */
+/** Industrije za koje postoje primer fotografije (besplatne, Unsplash licenca), 4 po industriji. */
+const STOCK = new Set(["restoran", "salon", "fitness", "beauty", "auto", "nekretnine", "shop", "edukacija", "trener", "klub", "booking", "drugo"]);
+export const stockPhoto = (industry: string, n: number) => (STOCK.has(industry) ? `/demo-photos/${industry}-${(n % 4) + 1}.jpg` : null);
+
+/** Fotografija klijenta ili jasno označena primer fotografija za njegovu delatnost. */
 export function Photo({ src, seed, className = "", label = true, style }: { src?: string; seed: string; className?: string; label?: boolean; style?: React.CSSProperties }) {
   const { config } = useEngine();
   if (src) return <div className={`mja-photo ${className}`} style={{ backgroundImage: `url(${src})`, ...style }} role="img" />;
   const h = hash(seed);
+  const stock = stockPhoto(config.industry, seed.endsWith("hero") ? 0 : 1 + (h % 3));
+  if (stock) {
+    return (
+      <div className={`mja-photo is-stock ${className}`} style={{ backgroundImage: `url(${stock})`, ...style }} role="img" aria-label="Primer fotografije">
+        {label && <span className="mja-ph-tag">Primer</span>}
+      </div>
+    );
+  }
   const tone = 30 + (h % 45); // procenat mešanja primarne boje sa pozadinom
   return (
     <div className={`mja-photo is-placeholder ${className}`} style={{ background: `color-mix(in srgb, var(--p) ${tone}%, var(--p-soft))`, ...style }} role="img" aria-label="Primer fotografije">

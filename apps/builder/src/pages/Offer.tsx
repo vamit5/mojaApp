@@ -40,20 +40,21 @@ export function Offer({ token }: { token: string }) {
 
   const deposit = Math.round(offer.total * offer.deposit_pct) / 100;
   const expired = offer.valid_until ? new Date(offer.valid_until + "T23:59:59") < new Date() : false;
-  const accepted = offer.status === "prihvacena";
 
-  const fullPay = offer.deposit_pct >= 100;
-  const payLabel = fullPay ? `Plati ${money(offer.total, offer.currency)}` : `Plati depozit ${money(deposit, offer.currency)}`;
+  const ordered = !!offer.project_token;
+  const legacyDeposit = offer.deposit_pct > 0 && !ordered && !offer.deposit_paid;
 
-  const accept = async (thenPay: boolean) => {
+  /** Narudžbina bez plaćanja: projekat kreće odmah, plaćanje tek kad se aplikacija svidi. */
+  const order = async () => {
     if (!supabase) return;
     setAccepting(true); setError("");
-    if (!accepted) {
-      const { data, error } = await supabase.rpc("accept_offer", { p_token: token });
-      if (error || !data) { setAccepting(false); setError("Prihvatanje nije uspelo. Ponuda je možda istekla. Javite nam se i poslaćemo novu."); return; }
-      setOffer({ ...offer, status: "prihvacena" });
-    }
-    if (!thenPay) { setAccepting(false); return; }
+    const { data, error } = await supabase.rpc("order_offer", { p_token: token });
+    if (error || !data) { setAccepting(false); setError("Narudžbina nije uspela. Ponuda je možda istekla. Javite nam se i poslaćemo novu."); return; }
+    setOffer({ ...offer, status: "prihvacena", project_token: data as string });
+    setAccepting(false);
+  };
+  const payDeposit = async () => {
+    setAccepting(true); setError("");
     const err = await startCheckout({ offer_token: token });
     if (err) { setAccepting(false); setError(err); }
   };
@@ -108,7 +109,9 @@ export function Offer({ token }: { token: string }) {
 
         <section className="o-block">
           <h2>Plaćanje</h2>
-          <p>{offer.deposit_pct}% depozita ({money(deposit, offer.currency)}) pri prihvatanju ponude. Ostatak ({money(offer.total - deposit, offer.currency)}) pre predaje aplikacije na App Store i Google Play. Mesečni iznos počinje od objave aplikacije.</p>
+          {offer.deposit_pct > 0
+            ? <p>{offer.deposit_pct}% depozita ({money(deposit, offer.currency)}) pri prihvatanju ponude. Ostatak ({money(offer.total - deposit, offer.currency)}) pre predaje aplikacije na App Store i Google Play. Mesečni iznos počinje od objave aplikacije.</p>
+            : <p><strong>Ništa ne plaćate unapred.</strong> Izrađujemo aplikaciju spremnu za App Store i Google Play. Kad je isprobate na svom telefonu i kad vam se svidi, plaćate {money(offer.total, offer.currency)} i mi je objavljujemo. Mesečni iznos počinje od objave.</p>}
         </section>
 
         <section className="o-block o-note">
@@ -117,24 +120,22 @@ export function Offer({ token }: { token: string }) {
         </section>
 
         <footer className="o-actions">
-          {offer.deposit_paid ? (
+          {ordered ? (
             <>
-              <div className="o-accepted"><Icon name="check" size={20} /> {fullPay ? "Uplata je primljena." : "Depozit je uplaćen."} Izrada je u toku.</div>
-              {offer.project_token && <Link to={`/projekat/${offer.project_token}`} className="b-btn is-big">Pratite izradu</Link>}
-            </>
-          ) : accepted ? (
-            <>
-              <div className="o-accepted"><Icon name="check" size={20} /> Ponuda je prihvaćena.</div>
-              <button type="button" className="b-btn is-big" onClick={() => accept(true)} disabled={accepting}><Icon name="card" size={18} />{accepting ? "Otvaramo plaćanje…" : payLabel}</button>
-              <span className="o-muted">Kartica, Apple Pay ili Google Pay, preko Stripe-a.</span>
+              <div className="o-accepted"><Icon name="check" size={20} /> {offer.deposit_paid ? "Uplata je primljena. Izrada je u toku." : "Narudžbina je potvrđena. Izrada je u toku, plaćate tek kad vam se svidi."}</div>
+              <Link to={`/projekat/${offer.project_token}`} className="b-btn is-big">Pratite izradu</Link>
             </>
           ) : expired ? (
             <div className="o-expired">Ponuda je istekla. Javite nam se i poslaćemo novu.</div>
+          ) : legacyDeposit ? (
+            <>
+              <button type="button" className="b-btn is-big" onClick={payDeposit} disabled={accepting}><Icon name="card" size={18} />{accepting ? "Otvaramo plaćanje…" : `Plati depozit ${money(deposit, offer.currency)}`}</button>
+              <button type="button" className="b-link" onClick={order} disabled={accepting}>Naruči bez plaćanja, platiću kad mi se svidi</button>
+            </>
           ) : (
             <>
-              <button type="button" className="b-btn is-big" onClick={() => accept(true)} disabled={accepting}><Icon name="card" size={18} />{accepting ? "Otvaramo plaćanje…" : `Prihvatam i plaćam ${fullPay ? "" : "depozit "}${money(fullPay ? offer.total : deposit, offer.currency)}`}</button>
-              <button type="button" className="b-link" onClick={() => accept(false)} disabled={accepting}>Prihvati sada, platiću kasnije</button>
-              <span className="o-muted">Plaćanje karticom, Apple Pay ili Google Pay, preko Stripe-a. Izrada počinje posle uplate.</span>
+              <button type="button" className="b-btn is-big" onClick={order} disabled={accepting}><Icon name="check" size={18} />{accepting ? "Šaljemo narudžbinu…" : "Naručujem izradu, bez plaćanja"}</button>
+              <span className="o-muted">Plaćate tek kad aplikaciju isprobate i kad vam se svidi. Tada je objavljujemo na App Store i Google Play.</span>
             </>
           )}
           {error && <p className="b-error" role="alert">{error}</p>}
