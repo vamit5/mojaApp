@@ -51,7 +51,7 @@ export function DemoView({ slug }: { slug: string }) {
     <div className="s-center s-missing">
       <h1>Ovaj demo ne postoji ili je istekao.</h1>
       <p>Proverite link ili napravite novi demo za par minuta.</p>
-      <Link to="/demo" className="b-btn is-big">Napravite demo</Link>
+      <Link to="/demo" className="b-btn is-big">Napravi demo – 30 sec</Link>
     </div>
   );
 

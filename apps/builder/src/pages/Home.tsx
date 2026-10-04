@@ -26,25 +26,32 @@ const FALLBACK_TEAM: Team = { name: "Borislav Kukić", role: "osnivač", city: "
 interface Plan { key: string; name: string; once: number | null; monthly: number | null; label?: string; time?: string; features: string[] }
 
 const FALLBACK_PLANS: Plan[] = [
-  { key: "start", name: "START", once: PLANS.start.once, monthly: PLANS.start.monthly, time: "24–48h", features: ["Do 6 funkcija iz kataloga", "Tvoj logo, boje i sadržaj", "Admin panel za izmene", "Priprema i predaja na App Store i Google Play"] },
-  { key: "business", name: "BUSINESS", once: PLANS.business.once, monthly: PLANS.business.monthly, time: "5–7 radnih dana", features: ["Sve funkcije iz kataloga", "Online plaćanje", "Loyalty, članstvo, kuponi", "Push kampanje i statistika"] },
-  { key: "custom", name: "CUSTOM", once: null, monthly: null, label: "od 2.900 €", time: "po ponudi", features: ["Funkcije van kataloga", "Integracije sa tvojim sistemima", "Sopstveni backend"] },
+  { key: "start", name: "START", once: PLANS.start.once, monthly: null, time: "24–48h", features: ["Kompletna izrada aplikacije za iOS i Android", "Tvoj logo, boje i sadržaj", "Do 6 funkcija iz kataloga", "Priprema i objava na App Store i Google Play"] },
+  { key: "business", name: "BUSINESS", once: PLANS.business.once, monthly: null, time: "5–7 radnih dana", features: ["Sve iz START paketa", "Sopstveni backend i baza podataka", "Admin panel za upravljanje", "Push notifikacije korisnicima", "Online plaćanje, loyalty, članstvo i kuponi", "Statistika korišćenja"] },
 ];
+
+const FALLBACK_CARE: Plan = { key: "odrzavanje", name: "Održavanje", once: null, monthly: 39, features: ["Hosting i baza podataka", "Prilagođavanje novim verzijama iOS-a i Androida", "Tehnička podrška i ispravke", "Izmene sadržaja po tvom zahtevu", "Push kampanje po dogovoru"] };
 
 function usePlans() {
   const [plans, setPlans] = useState<Plan[]>(FALLBACK_PLANS);
+  const [care, setCare] = useState<Plan>(FALLBACK_CARE);
   useEffect(() => {
     if (!supabase) return;
     supabase.from("pricing_plans").select("key,name,price_once,price_month,price_label,build_time,features").eq("enabled", true).order("position")
       .then(({ data }) => {
         if (!data?.length) return;
-        setPlans(data.filter((r) => r.key !== "odrzavanje").map((r) => ({
+        const rows: Plan[] = data.map((r) => ({
           key: r.key, name: r.name?.sr ?? r.key, once: r.price_once === null ? null : Number(r.price_once),
           monthly: r.price_month === null ? null : Number(r.price_month), label: r.price_label?.sr, time: r.build_time?.sr, features: r.features ?? [],
-        })));
+        }));
+        const c = rows.find((r) => r.key === "odrzavanje");
+        if (c) setCare(c);
+        // Prikazujemo samo START i BUSINESS; CUSTOM se dogovara direktno.
+        const shown = rows.filter((r) => r.key === "start" || r.key === "business");
+        if (shown.length) setPlans(shown);
       });
   }, []);
-  return plans;
+  return { plans, care };
 }
 
 /** "od 2.900 €" → 2900 */
@@ -54,14 +61,13 @@ export function Home() {
   const [heroIdx, setHeroIdx] = useState(0);
   const [paused, setPaused] = useState(false);
   const [sticky, setSticky] = useState(false);
-  const plans = usePlans();
+  const { plans, care } = usePlans();
   const offer = useOffer();
   const site = useSiteContent();
   const team: Team = site.team ? { ...site.team, photo: site.team.photo || FALLBACK_PHOTO, email: site.team.email || SUPPORT_EMAIL } : FALLBACK_TEAM;
   const portfolio = site.portfolio;
   const wa = waLink(team.whatsapp);
   const startOnce = plans.find((p) => p.key === "start")?.once ?? PLANS.start.once;
-  const startMonthly = plans.find((p) => p.key === "start")?.monthly ?? PLANS.start.monthly;
   const heroConfig = useMemo(() => createConfig(HERO_APPS[heroIdx].key, HERO_APPS[heroIdx].name), [heroIdx]);
 
   useEffect(() => {
@@ -96,7 +102,7 @@ export function Home() {
           <a href="#cene">Cene</a>
           <a href="#o-meni">O nama</a>
         </nav>
-        <Link to="/demo" className="b-btn h-nav-cta" onClick={cta("nav")}>Napravi demo</Link>
+        <Link to="/demo" className="b-btn h-nav-cta" onClick={cta("nav")}>Napravi demo – 30 sec</Link>
       </header>
 
       <section className="h-hero">
@@ -110,17 +116,17 @@ export function Home() {
           <p className="h-hero-sub">Pogledaj besplatno kako izgleda. Naruči izradu <strong>bez plaćanja</strong>. Kad je isprobaš i svidi ti se, platiš i objavljujemo je.</p>
           <div className="h-price">
             <div className="h-price-main">
-              <span className="h-price-label">START paket{offer.active ? ` · −${offer.percent}%` : ""}</span>
+              <span className="h-price-label">{offer.active ? `${offer.label} · −${offer.percent}%` : "Kompletna izrada"}</span>
               <span className="h-price-now">{eur(offer.price(startOnce))}</span>
               {offer.active && <s className="h-price-was">{eur(startOnce)}</s>}
             </div>
             <div className="h-price-side">
-              <span>jednokratno, + {eur(startMonthly)}/mes.</span>
-              {offer.active ? <span className="h-price-timer">popust ističe za <b>{timer}</b></span> : <span>gotova za 24–48h</span>}
+              <span><strong>Kompletna izrada aplikacije</strong>, jednokratno. Bez obaveznih mesečnih troškova.</span>
+              {offer.active ? <span className="h-price-timer">ističe za <b>{timer}</b></span> : <span>gotova za 24–48h</span>}
             </div>
           </div>
           <div className="h-hero-actions">
-            <Link to="/demo" className="b-btn is-big h-btn-o" onClick={cta("hero")}>Pogledaj svoju aplikaciju besplatno <Icon name="chevronRight" size={18} /></Link>
+            <Link to="/demo" className="b-btn is-big h-btn-o" onClick={cta("hero")}>Napravi demo – 30 sec <Icon name="chevronRight" size={18} /></Link>
             {wa && <a href={wa} target="_blank" rel="noreferrer" className="b-btn is-big is-ghost" onClick={cta("hero_wa")}>Piši nam na WhatsApp</a>}
           </div>
           <a href="#o-meni" className="h-who">
@@ -146,8 +152,8 @@ export function Home() {
 
       <section className="h-pillars" aria-label="Zašto MojApp">
         <div className="h-pillar is-o">
-          <b>{offer.active ? `−${offer.percent}%` : eur(startOnce)}</b>
-          <span>{offer.active ? <>Važi još <span className="h-tnum">{timer}</span></> : "START paket, jednokratno"}</span>
+          <b>{eur(offer.price(startOnce))}</b>
+          <span>{offer.active ? <>{offer.label}: −{offer.percent}% na kompletnu izradu. Još <span className="h-tnum">{timer}</span></> : "kompletna izrada aplikacije"}</span>
         </div>
         <div className="h-pillar"><b>24–48h</b><span>od narudžbine do gotove aplikacije*</span></div>
         <div className="h-pillar"><b>0 €</b><span>unapred. Plaćaš tek kad ti se gotova aplikacija svidi</span></div>
@@ -172,30 +178,40 @@ export function Home() {
             <li key={s.title}><h3>{s.title}</h3><p>{s.text}</p><span className="h-step-meta">{s.meta}</span></li>
           ))}
         </ol>
-        <div className="h-center"><Link to="/demo" className="b-btn is-big h-btn-o" onClick={cta("how")}>Napravi svoj demo</Link></div>
+        <div className="h-center"><Link to="/demo" className="b-btn is-big h-btn-o" onClick={cta("how")}>Napravi demo – 30 sec</Link></div>
       </section>
 
       <section className="h-section" id="cene" aria-labelledby="cene-h">
-        <h2 id="cene-h">Cene{offer.active && <span className="h-price-flag">−{offer.percent}% još {timer}</span>}</h2>
-        <p className="h-lead">Jednokratna izrada + mali mesečni iznos za hosting, nove verzije iOS-a i Androida i podršku. Izradu naručuješ bez plaćanja, plaćaš tek kad ti se gotova aplikacija svidi.</p>
+        <h2 id="cene-h">Cene{offer.active && <span className="h-price-flag">{offer.label}: −{offer.percent}% još {timer}</span>}</h2>
+        <p className="h-lead">Jednokratna cena za kompletnu izradu, bez obaveznih mesečnih troškova. Izradu naručuješ bez plaćanja, plaćaš tek kad ti se gotova aplikacija svidi.</p>
         <div className="h-plans">
           {plans.map((p) => {
             const regular = p.once ?? labelNumber(p.label);
-            const now = regular !== null ? offer.price(regular) : null;
+            const now = regular !== null ? offer.price(regular, p.key) : null;
+            const disc = offer.covers(p.key);
             const prefix = p.once === null ? "od " : "";
             return (
               <div key={p.key} className={`h-plan ${p.key === "start" ? "is-main" : ""}`}>
-                <div className="h-plan-name">{p.name}{p.key === "start" && <em>Najčešći izbor</em>}</div>
-                {offer.active && regular !== null && <div className="h-plan-old">{prefix}{eur(regular)}</div>}
+                <div className="h-plan-name">{p.name}{disc ? <em>{offer.label} −{offer.percent}%</em> : p.key === "start" && <em>Najčešći izbor</em>}</div>
+                {disc && regular !== null && <div className="h-plan-old">{prefix}{eur(regular)}</div>}
                 <div className="h-plan-price">{now !== null ? `${prefix}${eur(now)}` : p.label ?? "Na upit"}</div>
-                <div className="h-plan-month">{p.monthly !== null ? `+ ${eur(p.monthly)} mesečno` : "mesečno po ponudi"}</div>
+                <div className="h-plan-month">jednokratno, kompletna izrada</div>
                 {p.time && <div className="h-plan-time">Izrada: {p.time}</div>}
                 <ul>{p.features.map((f) => <li key={f}><Icon name="check" size={16} />{f}</li>)}</ul>
               </div>
             );
           })}
         </div>
-        <div className="h-center"><Link to="/demo" className="b-btn is-big h-btn-o" onClick={cta("pricing")}>Prvo isprobaj, onda odluči</Link></div>
+        <div className="h-care">
+          <div className="h-care-head">
+            <span className="h-care-tag">Opciono</span>
+            <h3>{care.name}</h3>
+            <div className="h-care-price">{eur(care.monthly ?? 39)}<span> / mesečno</span></div>
+            <p>Ako želiš da se mi brinemo o svemu posle objave. Nije obavezno, uključuješ ga samo ako ti treba.</p>
+          </div>
+          <ul>{care.features.map((f) => <li key={f}><Icon name="check" size={16} />{f}</li>)}</ul>
+        </div>
+        <div className="h-center"><Link to="/demo" className="b-btn is-big h-btn-o" onClick={cta("pricing")}>{"Napravi demo – 30 sec"}</Link></div>
       </section>
 
       <About team={team} />
@@ -213,14 +229,14 @@ export function Home() {
       <section className="h-final">
         <h2>Pogledaj svoju aplikaciju. <span className="h-o">Sada.</span></h2>
         <p>Besplatno i bez obaveze. Izradu naručuješ bez plaćanja.{offer.active ? ` Popust od ${offer.percent}% ističe za ${timer}.` : ""}</p>
-        <Link to="/demo" className="b-btn is-big h-btn-o" onClick={cta("final")}>Pogledaj svoju aplikaciju besplatno</Link>
+        <Link to="/demo" className="b-btn is-big h-btn-o" onClick={cta("final")}>Napravi demo – 30 sec</Link>
         {wa && <a className="h-final-wa" href={wa} target="_blank" rel="noreferrer">ili nam piši na WhatsApp</a>}
       </section>
 
       <AnimatePresence>
         {sticky && (
           <motion.div className="h-sticky" initial={{ y: 90 }} animate={{ y: 0 }} exit={{ y: 90 }} transition={{ type: "spring", stiffness: 420, damping: 38 }}>
-            <Link to="/demo" className="b-btn is-big h-btn-o" onClick={cta("sticky")}>Napravi demo{offer.active ? ` · −${offer.percent}%` : " besplatno"}</Link>
+            <Link to="/demo" className="b-btn is-big h-btn-o" onClick={cta("sticky")}>Napravi demo – 30 sec</Link>
           </motion.div>
         )}
       </AnimatePresence>

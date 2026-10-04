@@ -12,8 +12,8 @@ export interface Estimate {
 
 /** Cene paketa — u produkciji dolaze iz pricing_plans (CMS). */
 export const PLANS = {
-  start:    { once: 690,  monthly: 19, maxModules: 6 },
-  business: { once: 1390, monthly: 29 },
+  start:    { once: 780,  monthly: 0, maxModules: 6 },
+  business: { once: 1290, monthly: 0 },
 } as const;
 
 /** Interna procena za admina na osnovu izabranih modula. */

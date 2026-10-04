@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { supabase } from "./supabase";
 
 /** Lansirna ponuda iz Admin → Sajt → Ponuda. Važi samo dok rok nije prošao. */
-export interface Offer { percent: number; label?: string; ends_at?: string | null }
+export interface Offer { percent: number; label?: string; ends_at?: string | null; plans?: string[] }
 
 export function useOffer() {
   const [offer, setOffer] = useState<Offer | null>(null);
@@ -19,12 +19,15 @@ export function useOffer() {
     return () => clearInterval(t);
   }, [active]);
   const left = active ? Math.max(0, end - now) : 0;
+  const covers = (plan = "start") => active && (offer!.plans?.length ? offer!.plans : ["start"]).includes(plan);
   return {
     active,
     percent: active ? offer!.percent : 0,
-    label: offer?.label || "Lansirna ponuda",
+    label: offer?.label || "Samo danas",
     left,
-    price: (regular: number) => (active ? Math.round((regular * (100 - offer!.percent)) / 100) : regular),
+    /** Da li ponuda važi za paket (podrazumevano samo START). */
+    covers,
+    price: (regular: number, plan = "start") => (covers(plan) ? Math.round((regular * (100 - offer!.percent)) / 100) : regular),
   };
 }
 

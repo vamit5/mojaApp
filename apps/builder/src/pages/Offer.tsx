@@ -111,7 +111,7 @@ export function Offer({ token }: { token: string }) {
           <h2>Plaćanje</h2>
           {offer.deposit_pct > 0
             ? <p>{offer.deposit_pct}% depozita ({money(deposit, offer.currency)}) pri prihvatanju ponude. Ostatak ({money(offer.total - deposit, offer.currency)}) pre predaje aplikacije na App Store i Google Play. Mesečni iznos počinje od objave aplikacije.</p>
-            : <p><strong>Ništa ne plaćate unapred.</strong> Izrađujemo aplikaciju spremnu za App Store i Google Play. Kad je isprobate na svom telefonu i kad vam se svidi, plaćate {money(offer.total, offer.currency)} i mi je objavljujemo. Mesečni iznos počinje od objave.</p>}
+            : <p><strong>Ništa ne plaćate unapred.</strong> Izrađujemo aplikaciju spremnu za App Store i Google Play. Kad je isprobate na svom telefonu i kad vam se svidi, plaćate {money(offer.total, offer.currency)} i mi je objavljujemo.{offer.monthly ? " Mesečni iznos počinje od objave." : ""}</p>}
         </section>
 
         <section className="o-block o-note">

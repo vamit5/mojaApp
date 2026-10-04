@@ -341,3 +341,23 @@
   .h-price-now { font-size: 38px; }
   .h-price-side { padding: 12px 14px; font-size: 14px; }
 }
+
+/* Opciono održavanje */
+.h-care { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr); gap: 28px; align-items: center; margin: 0 0 32px; padding: 26px 28px; border-radius: 22px; background: var(--panel); box-shadow: inset 0 0 0 1px var(--line-2); }
+.h-care-tag { display: inline-block; font-size: 11.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ink-2); border: 1px solid var(--line-2); padding: 3px 9px; border-radius: 999px; }
+.h-care h3 { font-size: 22px; margin: 10px 0 2px; }
+.h-care-price { font-size: 34px; font-weight: 800; letter-spacing: -.03em; }
+.h-care-price span { font-size: 16px; font-weight: 500; color: var(--ink-2); }
+.h-care p { margin: 8px 0 0; color: var(--ink-2); font-size: 15px; }
+.h-care ul { list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: 1fr 1fr; gap: 10px 18px; font-size: 15px; }
+.h-care li { display: flex; gap: 8px; align-items: flex-start; }
+.h-care li svg { flex: none; margin-top: 3px; color: var(--o); }
+.h-plans { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+@media (max-width: 960px) { .h-care { grid-template-columns: minmax(0, 1fr); } }
+@media (max-width: 600px) { .h-care { padding: 22px 18px; } .h-care ul { grid-template-columns: 1fr; } .h-plans { grid-template-columns: minmax(0, 1fr); } }
+.h-price-now { white-space: nowrap; }
+@media (max-width: 600px) {
+  .h-price { flex-direction: column; }
+  .h-price-main { flex-direction: row; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; }
+  .h-price-label { flex-basis: 100%; }
+}

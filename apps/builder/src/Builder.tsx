@@ -296,7 +296,7 @@ function StepFeatures({ config, update }: StepProps) {
       </div>
       <motion.div className="b-plan" layout>
         <span>Vaš izbor: <strong>{est.plan === "start" ? "START" : "BUSINESS"}</strong></span>
-        <span>{offer.active && <s className="b-old">{eur(est.priceOnce ?? 0)}</s>} {eur(offer.price(est.priceOnce ?? 0))} + {eur(est.priceMonthly)} mesečno</span>
+        <span>{offer.covers(est.plan) && <s className="b-old">{eur(est.priceOnce ?? 0)}</s>} {eur(offer.price(est.priceOnce ?? 0, est.plan))} jednokratno</span>
       </motion.div>
       {est.plan === "business" && <p className="b-small">{est.reasons.join(". ")}. Za START isključite BUSINESS funkcije.</p>}
     </>
@@ -397,7 +397,7 @@ function Ready({ config, plan, introKey, onClose }: { config: AppConfig; plan: "
               </div>
               <dl className="b-facts">
                 <div><dt>Paket</dt><dd>{plan === "start" ? "START" : "BUSINESS"}</dd></div>
-                <div><dt>Cena{offer.active ? ` (−${offer.percent}%)` : ""}</dt><dd>{offer.active && <s className="b-old">{eur(p.once)}</s>} {eur(offer.price(p.once))} + {eur(p.monthly)} mesečno</dd></div>
+                <div><dt>Kompletna izrada{offer.covers(plan) ? ` (${offer.label} −${offer.percent}%)` : ""}</dt><dd>{offer.covers(plan) && <s className="b-old">{eur(p.once)}</s>} {eur(offer.price(p.once, plan))} jednokratno</dd></div>
                 <div><dt>Izrada</dt><dd>{plan === "start" ? "24–48h*" : "5–7 radnih dana*"}</dd></div>
               </dl>
               <p className="b-footnote">*Rok se odnosi na izradu aplikacije. Objavljivanje na App Store-u i Google Play-u zavisi od procesa pregleda i odobrenja tih platformi. Aplikacija se objavljuje na vaš nalog, pa Apple (99 USD godišnje) i Google (25 USD jednom) svoje naknade naplaćuju direktno vama.</p>

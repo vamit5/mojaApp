@@ -405,7 +405,7 @@ function defaultOffer(modules: ModuleKey[]) {
     { name: "Pregled Apple-a i Google-a", duration: "određuju platforme, obično od jednog do nekoliko dana" },
   ];
   const valid = new Date(); valid.setDate(valid.getDate() + 14);
-  return { plan, items, phases, total: est.priceOnce ?? 2900, monthly: est.priceMonthly ?? 39, deposit: 0, validUntil: valid.toISOString().slice(0, 10) };
+  return { plan, items, phases, total: est.priceOnce ?? 2900, monthly: est.priceMonthly || null, deposit: 0, validUntil: valid.toISOString().slice(0, 10) };
 }
 
 function OfferEditor({ lead, modules, onClose, onSaved }: { lead: Lead; modules: ModuleKey[]; onClose: () => void; onSaved: (status: "nacrt" | "poslata") => void }) {
@@ -414,8 +414,8 @@ function OfferEditor({ lead, modules, onClose, onSaved }: { lead: Lead; modules:
   const offerNow = useOffer();
   const [total, setTotal] = useState(String(init.total));
   // Aktivna ponuda (−%) se primenjuje na predlog cene čim se učita.
-  useEffect(() => { if (offerNow.active) setTotal(String(offerNow.price(init.total))); }, [offerNow.active]); // eslint-disable-line react-hooks/exhaustive-deps
-  const [monthly, setMonthly] = useState(String(init.monthly));
+  useEffect(() => { if (offerNow.covers(init.plan)) setTotal(String(offerNow.price(init.total, init.plan))); }, [offerNow.active]); // eslint-disable-line react-hooks/exhaustive-deps
+  const [monthly, setMonthly] = useState(init.monthly ? String(init.monthly) : "");
   const [deposit, setDeposit] = useState(String(init.deposit));
   const [validUntil, setValidUntil] = useState(init.validUntil);
   const [saving, setSaving] = useState(false);
