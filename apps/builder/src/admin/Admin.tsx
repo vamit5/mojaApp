@@ -4,6 +4,7 @@ import type { Session } from "@supabase/supabase-js";
 import { AppConfigSchema, estimate, industryByKey, MODULES, type AppConfig, type ModuleKey } from "@mojapp/core";
 import { Icon } from "@mojapp/ui";
 import { useOffer } from "../lib/offer";
+import { usePlanPrices } from "../lib/plans";
 import { supabase } from "../lib/supabase";
 import { Phone } from "../components/Phone";
 import { Link } from "../router";
@@ -412,9 +413,15 @@ function OfferEditor({ lead, modules, onClose, onSaved }: { lead: Lead; modules:
   const init = useMemo(() => defaultOffer(modules), [modules]);
   const [items, setItems] = useState(init.items);
   const offerNow = useOffer();
+  const planPrices = usePlanPrices();
   const [total, setTotal] = useState(String(init.total));
   // Aktivna ponuda (−%) se primenjuje na predlog cene čim se učita.
-  useEffect(() => { if (offerNow.covers(init.plan)) setTotal(String(offerNow.price(init.total, init.plan))); }, [offerNow.active]); // eslint-disable-line react-hooks/exhaustive-deps
+  // Predlog cene: cena paketa iz baze, sa aktivnim popustom ako važi za taj paket.
+  useEffect(() => {
+    if (!planPrices.loaded || init.plan === "custom") return;
+    const base = planPrices.of(init.plan);
+    setTotal(String(offerNow.price(base, init.plan)));
+  }, [planPrices.loaded, offerNow.active]); // eslint-disable-line react-hooks/exhaustive-deps
   const [monthly, setMonthly] = useState(init.monthly ? String(init.monthly) : "");
   const [deposit, setDeposit] = useState(String(init.deposit));
   const [validUntil, setValidUntil] = useState(init.validUntil);

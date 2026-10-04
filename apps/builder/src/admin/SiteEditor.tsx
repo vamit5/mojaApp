@@ -24,6 +24,7 @@ export function SiteEditor() {
     <>
       <div className="a-head"><h1>Sajt</h1><a className="b-btn is-ghost" href="/" target="_blank" rel="noreferrer">Otvori sajt</a></div>
       <OfferEditor />
+      <PlansEditor />
       <TeamEditor />
       <PortfolioEditor />
     </>
@@ -32,7 +33,7 @@ export function SiteEditor() {
 
 /* ───────────── Ponuda (−%) ───────────── */
 
-interface OfferValue { percent: number; label: string; ends_at: string | null }
+interface OfferValue { percent: number; label: string; ends_at: string | null; plans?: string[] }
 
 /** ISO → vrednost za <input type="datetime-local"> u lokalnom vremenu. */
 const toLocal = (iso: string | null) => { if (!iso) return ""; const d = new Date(iso); d.setMinutes(d.getMinutes() - d.getTimezoneOffset()); return d.toISOString().slice(0, 16); };
@@ -63,6 +64,16 @@ function OfferEditor() {
         <label className="b-field"><span>Naziv</span><input id="offer-label" value={o.label} onChange={(e) => setO({ ...o, label: e.target.value })} /></label>
         <label className="b-field"><span>Važi do</span><input id="offer-end" type="datetime-local" value={toLocal(o.ends_at)} onChange={(e) => setO({ ...o, ends_at: e.target.value ? new Date(e.target.value).toISOString() : null })} /></label>
       </div>
+      <div className="a-checks">
+        <span className="a-sub">Popust važi za:</span>
+        {[["start", "START"], ["business", "BUSINESS"]].map(([k, label]) => {
+          const list = o.plans?.length ? o.plans : ["start"];
+          return (
+            <label key={k} className="a-check"><input type="checkbox" checked={list.includes(k)}
+              onChange={(e) => setO({ ...o, plans: e.target.checked ? [...new Set([...list, k])] : list.filter((x) => x !== k) })} /> {label}</label>
+          );
+        })}
+      </div>
       <div className="a-row">
         <button type="button" className="b-btn" onClick={() => save(o)}>Sačuvaj</button>
         <button type="button" className="b-btn is-ghost" onClick={() => save({ ...o, ends_at: endToday() })}>Do kraja danas</button>
@@ -70,6 +81,70 @@ function OfferEditor() {
         {msg && <span className="a-sub">{msg}</span>}
       </div>
       <p className="a-sub">Cene na sajtu su redovne cene iz paketa; popust se računa od njih. Kad rok prođe, sajt sam prikazuje redovne cene.</p>
+    </section>
+  );
+}
+
+/* ───────────── Paketi i cene ───────────── */
+
+interface PlanRow { id: string; key: string; name: string; price_once: string; price_month: string; build_time: string; features: string; enabled: boolean; position: number }
+const PLAN_HINT: Record<string, string> = {
+  start: "Glavni paket. Popust iz Ponude se računa od ove cene.",
+  business: "Veći paket sa backendom, adminom i notifikacijama.",
+  custom: "Paket po dogovoru. Upiši cenu „od“ u polje cene ili ga ostavi isključenog.",
+  odrzavanje: "Opciono mesečno održavanje. Upiši mesečnu cenu.",
+};
+
+function PlansEditor() {
+  const [rows, setRows] = useState<PlanRow[] | null>(null);
+  const [busy, setBusy] = useState<string | null>(null);
+  const [msg, setMsg] = useState<Record<string, string>>({});
+  useEffect(() => {
+    db.from("pricing_plans").select("*").order("position").then(({ data }) => {
+      setRows((data ?? []).map((r) => ({
+        id: r.id, key: r.key, name: r.name?.sr ?? r.key, enabled: r.enabled, position: r.position ?? 0,
+        price_once: r.price_once === null ? "" : String(Number(r.price_once)),
+        price_month: r.price_month === null ? "" : String(Number(r.price_month)),
+        build_time: r.build_time?.sr ?? "", features: (r.features ?? []).join("\n"),
+      })));
+    });
+  }, []);
+  if (!rows) return null;
+  const set = (id: string, patch: Partial<PlanRow>) => setRows(rows.map((r) => (r.id === id ? { ...r, ...patch } : r)));
+  const num = (v: string) => { const n = Number(v.replace(",", ".").replace(/\s/g, "")); return v.trim() === "" || !Number.isFinite(n) ? null : n; };
+  const save = async (r: PlanRow) => {
+    setBusy(r.id); setMsg({ ...msg, [r.id]: "" });
+    const { error } = await db.from("pricing_plans").update({
+      name: { sr: r.name.trim() || r.key.toUpperCase() }, price_once: num(r.price_once), price_month: num(r.price_month),
+      build_time: r.build_time.trim() ? { sr: r.build_time.trim() } : null,
+      features: r.features.split("\n").map((x) => x.trim()).filter(Boolean), enabled: r.enabled, updated_at: new Date().toISOString(),
+    }).eq("id", r.id);
+    setBusy(null); setMsg({ ...msg, [r.id]: error ? "Čuvanje nije uspelo." : "Sačuvano. Sajt i demo već prikazuju novo." });
+  };
+  return (
+    <section className="a-box a-site-box">
+      <div className="a-box-head"><h3>Paketi i cene</h3><span className="a-sub">Redovne cene. Popust podešavaš iznad, u Ponudi.</span></div>
+      <div className="a-plans">
+        {rows.map((r) => (
+          <div key={r.id} className={`a-plan ${r.enabled ? "" : "is-off"}`}>
+            <div className="a-plan-head">
+              <strong>{r.key === "odrzavanje" ? "Održavanje" : r.key.toUpperCase()}</strong>
+              <label className="a-check"><input type="checkbox" checked={r.enabled} onChange={(e) => set(r.id, { enabled: e.target.checked })} /> Prikaži na sajtu</label>
+            </div>
+            <p className="a-sub">{PLAN_HINT[r.key] ?? ""}</p>
+            <div className="a-offer-grid a-two">
+              <label className="b-field"><span>Naziv</span><input value={r.name} onChange={(e) => set(r.id, { name: e.target.value })} /></label>
+              <label className="b-field"><span>Rok izrade</span><input value={r.build_time} placeholder="npr. 24–48h" onChange={(e) => set(r.id, { build_time: e.target.value })} /></label>
+            </div>
+            <div className="a-offer-grid a-two">
+              <label className="b-field"><span>Cena izrade (€, jednokratno)</span><input inputMode="decimal" value={r.price_once} placeholder="prazno = nema" onChange={(e) => set(r.id, { price_once: e.target.value })} /></label>
+              <label className="b-field"><span>Mesečno (€)</span><input inputMode="decimal" value={r.price_month} placeholder="prazno = nema" onChange={(e) => set(r.id, { price_month: e.target.value })} /></label>
+            </div>
+            <label className="b-field"><span>Šta je uključeno (jedna stavka po redu)</span><textarea rows={6} value={r.features} onChange={(e) => set(r.id, { features: e.target.value })} /></label>
+            <div className="a-row"><button type="button" className="b-btn" onClick={() => save(r)} disabled={busy === r.id}>{busy === r.id ? "Čuvamo…" : "Sačuvaj paket"}</button>{msg[r.id] && <span className="a-sub">{msg[r.id]}</span>}</div>
+          </div>
+        ))}
+      </div>
     </section>
   );
 }

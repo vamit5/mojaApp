@@ -34,7 +34,7 @@ const FALLBACK_CARE: Plan = { key: "odrzavanje", name: "Održavanje", once: null
 
 function usePlans() {
   const [plans, setPlans] = useState<Plan[]>(FALLBACK_PLANS);
-  const [care, setCare] = useState<Plan>(FALLBACK_CARE);
+  const [care, setCare] = useState<Plan | null>(FALLBACK_CARE);
   useEffect(() => {
     if (!supabase) return;
     supabase.from("pricing_plans").select("key,name,price_once,price_month,price_label,build_time,features").eq("enabled", true).order("position")
@@ -44,10 +44,9 @@ function usePlans() {
           key: r.key, name: r.name?.sr ?? r.key, once: r.price_once === null ? null : Number(r.price_once),
           monthly: r.price_month === null ? null : Number(r.price_month), label: r.price_label?.sr, time: r.build_time?.sr, features: r.features ?? [],
         }));
-        const c = rows.find((r) => r.key === "odrzavanje");
-        if (c) setCare(c);
-        // Prikazujemo samo START i BUSINESS; CUSTOM se dogovara direktno.
-        const shown = rows.filter((r) => r.key === "start" || r.key === "business");
+        // Upit vraća samo pakete uključene u adminu ("Prikaži na sajtu").
+        setCare(rows.find((r) => r.key === "odrzavanje") ?? null);
+        const shown = rows.filter((r) => r.key !== "odrzavanje");
         if (shown.length) setPlans(shown);
       });
   }, []);
@@ -202,7 +201,7 @@ export function Home() {
             );
           })}
         </div>
-        <div className="h-care">
+        {care && <div className="h-care">
           <div className="h-care-head">
             <span className="h-care-tag">Opciono</span>
             <h3>{care.name}</h3>
@@ -210,7 +209,7 @@ export function Home() {
             <p>Ako želiš da se mi brinemo o svemu posle objave. Nije obavezno, uključuješ ga samo ako ti treba.</p>
           </div>
           <ul>{care.features.map((f) => <li key={f}><Icon name="check" size={16} />{f}</li>)}</ul>
-        </div>
+        </div>}
         <div className="h-center"><Link to="/demo" className="b-btn is-big h-btn-o" onClick={cta("pricing")}>{"Napravi demo – 30 sec"}</Link></div>
       </section>
 
